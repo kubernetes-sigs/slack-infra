@@ -24,7 +24,7 @@ import (
 	"log"
 	"net/http"
 
-	"k8s.io/test-infra/experiment/slack/slack"
+	"sigs.k8s.io/slack-infra/slack"
 )
 
 type handlerFunc func(body []byte) ([]byte, error)

@@ -23,7 +23,7 @@ import (
 	"net/http"
 	"os"
 
-	"k8s.io/test-infra/experiment/slack/slack"
+	"sigs.k8s.io/slack-infra/slack"
 )
 
 type options struct {
