@@ -1,1 +1,4 @@
 config.json
+
+# go binary
+slack-event-log
