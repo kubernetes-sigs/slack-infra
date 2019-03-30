@@ -126,7 +126,7 @@ func (selectType) MarshalJSON() ([]byte, error) {
 	return json.Marshal("select")
 }
 
-// SelectionOption represents a single option in a SelectElement
+// SelectOption represents a single option in a SelectElement
 type SelectOption struct {
 	Label string `json:"label"`
 	Value string `json:"value"`
