@@ -42,7 +42,7 @@ func New(config Config) *Client {
 	return &Client{Config: config}
 }
 
-// Calls most Slack API methods by name. If the API is normal but the URL is weird,
+// CallMethod calls most Slack API methods by name. If the API is normal but the URL is weird,
 // providing a complete https:// URL as the API name also works.
 func (c *Client) CallMethod(api string, args interface{}, ret interface{}) error {
 	marshalled, err := json.Marshal(args)
