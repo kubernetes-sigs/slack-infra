@@ -26,6 +26,8 @@ import (
 	"sigs.k8s.io/slack-infra/slack"
 )
 
+const maxRemovalDuration = 48 * time.Hour
+
 func (h *handler) handleModerateMessage(interaction slackInteraction, rw http.ResponseWriter) {
 	targetUser, err := h.getDisplayName(interaction.Message.User)
 	if err != nil {
@@ -78,6 +80,7 @@ func (h *handler) handleModerateMessage(interaction slackInteraction, rw http.Re
 				Label: "48 hours",
 				Value: "48h",
 			},
+			// If you change these, you may need to change maxRemovalDuration accordingly.
 		},
 		Value: "10m",
 	}
@@ -135,17 +138,20 @@ func (h *handler) handleModerateSubmission(interaction slackInteraction) {
 		duration, err := time.ParseDuration(remove)
 		if err != nil {
 			messages = append(messages, fmt.Sprintf("Failed to parse removal duration, and therefore could not remove any content: %v", err))
-		}
-		removedFiles, remainingFiles, removedMessages, remainingMessages, err := h.removeUserContent(interaction, duration, targetUser)
-
-		if err != nil {
-			messages = append(messages, fmt.Sprintf("Failed to remove any content: %v", err))
-		}
-
-		if remainingFiles == 0 && remainingMessages == 0 {
-			messages = append(messages, fmt.Sprintf("Successfully removed %d messages and %d files", removedMessages, removedFiles))
+		} else if duration > maxRemovalDuration {
+			messages = append(messages, fmt.Sprintf("unacceptably long content removal duration: %s", duration))
 		} else {
-			messages = append(messages, fmt.Sprintf("Couldn't remove all content. Removed %d messages and %d files, but there are %d messages and %d files left.", removedMessages, removedFiles, remainingMessages, remainingFiles))
+			removedFiles, remainingFiles, removedMessages, remainingMessages, err := h.removeUserContent(interaction, duration, targetUser)
+
+			if err != nil {
+				messages = append(messages, fmt.Sprintf("Failed to remove any content: %v", err))
+			}
+
+			if remainingFiles == 0 && remainingMessages == 0 {
+				messages = append(messages, fmt.Sprintf("Successfully removed %d messages and %d files", removedMessages, removedFiles))
+			} else {
+				messages = append(messages, fmt.Sprintf("Couldn't remove all content. Removed %d messages and %d files, but there are %d messages and %d files left.", removedMessages, removedFiles, remainingMessages, remainingFiles))
+			}
 		}
 	}
 

@@ -28,28 +28,25 @@ import (
 )
 
 func (h *handler) removeUserContent(interaction slackInteraction, duration time.Duration, targetUser string) (removedFiles, remainingFiles, removedMessages, remainingMessages int, err error) {
-	if duration > 48*time.Hour {
-		return 0, 0, 0, 0, fmt.Errorf("unacceptably long content removal duration: %s", duration)
-	}
 	start := time.Now().Add(-duration)
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func() {
+		defer wg.Done()
 		var err error
 		removedFiles, remainingFiles, err = h.removeFilesFromUser(targetUser, start)
 		if err != nil {
 			log.Printf("Couldn't remove files: %v", err)
 		}
-		wg.Done()
 	}()
 	go func() {
+		defer wg.Done()
 		var err error
 		removedMessages, remainingMessages, err = h.removeMessagesFromUser(targetUser, start)
 		if err != nil {
 			log.Printf("Couldn't remove messages: %v", err)
 		}
-		wg.Done()
 	}()
 	wg.Wait()
 

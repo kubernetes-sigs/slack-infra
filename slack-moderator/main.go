@@ -39,7 +39,7 @@ func parseFlags() options {
 	return o
 }
 
-func runServer(h *handler) {
+func runServer(h *handler) error {
 	http.Handle("/webhook", h)
 
 	port := os.Getenv("PORT")
@@ -49,7 +49,7 @@ func runServer(h *handler) {
 	}
 
 	log.Printf("Listening on port %s", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
 
 func loadAdminToken(path string) (string, error) {
@@ -79,5 +79,5 @@ func main() {
 	s := slack.New(c)
 
 	h := &handler{client: s, adminToken: adminToken}
-	runServer(h)
+	log.Fatal(runServer(h))
 }
