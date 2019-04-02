@@ -30,7 +30,7 @@ func (e ErrRateLimit) Error() string {
 }
 
 type ErrSlack struct {
-	Type     string
+	Type    string
 	Warnings []string
 }
 
