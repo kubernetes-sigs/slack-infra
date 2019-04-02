@@ -28,7 +28,7 @@ type ErrRateLimit struct {
 func (e ErrRateLimit) Error() string {
 	return fmt.Sprintf("slack has rate limited us for the next %s", e.Wait)
 }
-
+d
 type ErrSlack struct {
 	Type    string
 	Warnings []string
