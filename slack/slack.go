@@ -27,6 +27,7 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -50,16 +51,41 @@ func (c *Client) CallMethod(api string, args interface{}, ret interface{}) error
 		return fmt.Errorf("failed to marshal slack message: %v", err)
 	}
 	b := bytes.NewBuffer(marshalled)
-	url := api
-	if !strings.HasPrefix(url, "https://") {
-		url = "https://slack.com/api/" + api
-	}
-	req, err := http.NewRequest("POST", url, b)
+	req, err := http.NewRequest("POST", slackMethodToURL(api), b)
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP request: %v", err)
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", "Bearer "+c.Config.AccessToken)
+	return handleSlackRequest(req, ret)
+}
+
+// CallOldMethod calls Slack API methods that for some reason continue to not support JSON requests.
+func (c *Client) CallOldMethod(api string, args map[string]string, ret interface{}) error {
+	vs := url.Values{}
+	for k, v := range args {
+		vs[k] = []string{v}
+	}
+	vs["token"] = []string{c.Config.AccessToken}
+	q := vs.Encode()
+	b := bytes.NewBufferString(q)
+	u := slackMethodToURL(api)
+	req, err := http.NewRequest("POST", u, b)
+	if err != nil {
+		return fmt.Errorf("failed to create HTTP request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
+	return handleSlackRequest(req, ret)
+}
+
+func slackMethodToURL(method string) string {
+	if !strings.HasPrefix(method, "https://") {
+		return "https://slack.com/api/" + method
+	}
+	return method
+}
+
+func handleSlackRequest(req *http.Request, ret interface{}) error {
 	client := http.Client{}
 	response, err := client.Do(req)
 	if err != nil {
@@ -67,7 +93,11 @@ func (c *Client) CallMethod(api string, args interface{}, ret interface{}) error
 	}
 	if response.StatusCode != http.StatusOK {
 		if response.StatusCode == http.StatusTooManyRequests {
-			return fmt.Errorf("slack has rate limited us for the next %s seconds", response.Header.Get("Retry-After"))
+			retryAfter, err := strconv.ParseInt(response.Header.Get("Retry-After"), 10, 64)
+			if err != nil {
+				return fmt.Errorf("slack has rate limited us for %q seconds, but we can't parse that", response.Header.Get("Retry-After"))
+			}
+			return ErrRateLimit{Wait: time.Duration(retryAfter) * time.Second}
 		}
 		return fmt.Errorf("sending message to Slack failed")
 	}
@@ -87,7 +117,7 @@ func (c *Client) CallMethod(api string, args interface{}, ret interface{}) error
 			return fmt.Errorf("failed to decode JSON response: %v", err)
 		}
 		if !result.OK {
-			return fmt.Errorf("slack call failed: %s (%v)", result.Error, result.Metadata.Messages)
+			return ErrSlack{Type: result.Error, Warnings: result.Metadata.Messages}
 		}
 		if ret != nil {
 			if err := json.Unmarshal(body, ret); err != nil {
