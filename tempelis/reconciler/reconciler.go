@@ -17,6 +17,7 @@ limitations under the License.
 package reconciler
 
 import (
+	"fmt"
 	"log"
 
 	"sigs.k8s.io/slack-infra/slack"
@@ -24,26 +25,45 @@ import (
 )
 
 type Reconciler struct {
-	slack  *slack.Client
-	config config.Config
+	slack    *slack.Client
+	config   config.Config
+	channels channelState
 }
 
 func New(slack *slack.Client, config config.Config) *Reconciler {
 	return &Reconciler{
-		slack:  slack,
-		config: config,
+		slack:    slack,
+		config:   config,
+		channels: channelState{},
 	}
 }
 
 func (r *Reconciler) Reconcile(dryRun bool) error {
+	if err := r.channels.init(r.slack); err != nil {
+		return fmt.Errorf("failed to get initial channel state: %v", err)
+	}
 	var actions []Action
 	var errors []error
 	a, e := r.reconcileChannels()
 	actions = append(actions, a...)
 	errors = append(errors, e...)
+	a, e = r.reconcileUsergroups()
+	actions = append(actions, a...)
+	errors = append(errors, e...)
+
+	failed := false
+	if len(errors) > 0 {
+		log.Printf("This configuration cannot be applied against the current reality:")
+		failed = true
+	}
 
 	for i, e := range errors {
 		log.Printf("Error %d: %v.\n", i+1, e)
+	}
+
+	if !dryRun && failed {
+		dryRun = true
+		log.Printf("We will not execute anything due to errors, but this what we would've done:")
 	}
 
 	for i, a := range actions {
@@ -55,6 +75,9 @@ func (r *Reconciler) Reconcile(dryRun bool) error {
 		}
 	}
 
+	if failed {
+		return fmt.Errorf("there were configuration errors")
+	}
 	return nil
 }
 

@@ -16,6 +16,11 @@ limitations under the License.
 
 package config
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Config struct {
 	Users           map[string]string `json:"users"`
 	Channels        []Channel         `json:"channels"`
@@ -43,4 +48,22 @@ type ChannelTemplate struct {
 	Pins    []string `json:"pins,omitempty"`
 	Topic   string   `json:"topic,omitempty"`
 	Purpose string   `json:"purpose,omitempty"`
+}
+
+// NamesToIDs converts a list of names to a list of slack user IDs
+func (c *Config) NamesToIDs(names []string) ([]string, error) {
+	result := make([]string, 0, len(names))
+	var missing []string
+	for _, n := range names {
+		if id, ok := c.Users[n]; ok {
+			result = append(result, id)
+		} else {
+			missing = append(missing, n)
+		}
+	}
+
+	if len(missing) > 0 {
+		return nil, fmt.Errorf("unknown user names: %s", strings.Join(missing, ", "))
+	}
+	return result, nil
 }

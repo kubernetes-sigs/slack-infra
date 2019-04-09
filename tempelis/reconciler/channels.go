@@ -23,35 +23,32 @@ import (
 )
 
 func (r *Reconciler) reconcileChannels() ([]Action, []error) {
-	channels, err := r.slack.GetPublicChannels()
-	if err != nil {
-		return nil, []error{fmt.Errorf("failed to get current channel list: %v", err)}
-	}
-	channelsByName := map[string]slack.Conversation{}
-	channelsByID := map[string]slack.Conversation{}
-	missingChannels := map[string]slack.Conversation{}
+	missingChannels := map[string]*slack.Conversation{}
 
 	var actions []Action
 	var errors []error
 
-	for _, c := range channels {
-		channelsByName[c.Name] = c
-		channelsByID[c.ID] = c
+	for _, c := range r.channels.byName {
 		missingChannels[c.Name] = c
 	}
 
 	for _, c := range r.config.Channels {
 		if c.ID != "" {
-			if o, ok := channelsByID[c.ID]; ok {
+			if o, ok := r.channels.byID[c.ID]; ok {
 				if o.Name != c.Name {
-					actions = append(actions, renameChannelAction{id: o.ID, oldName: o.Name, newName: c.Name})
+					oldName := o.Name
+					if err := r.channels.rename(oldName, c.Name); err != nil {
+						errors = append(errors, err)
+					} else {
+						actions = append(actions, renameChannelAction{id: o.ID, oldName: oldName, newName: c.Name})
+					}
 					delete(missingChannels, o.Name)
 				}
 			} else {
 				errors = append(errors, fmt.Errorf("channel ID %s (for channel named %s) specified, but not known to Slack", c.ID, c.Name))
 			}
 		}
-		if o, ok := channelsByName[c.Name]; ok {
+		if o, ok := r.channels.byName[c.Name]; ok {
 			if c.Archived && !o.IsArchived {
 				actions = append(actions, archiveChannelAction{id: o.ID, name: o.Name})
 			} else if !c.Archived && o.IsArchived {
@@ -83,6 +80,8 @@ func (a createChannelAction) Perform(reconciler *Reconciler) error {
 	if err := reconciler.slack.CallMethod("conversations.create", map[string]string{"name": a.name}, &c); err != nil {
 		return fmt.Errorf("failed to create channel: %v", err)
 	}
+	reconciler.channels.byName[c.Name] = &c
+	reconciler.channels.byID[c.Name] = &c
 	t := &reconciler.config.ChannelTemplate
 	if t.Topic != "" {
 		if err := reconciler.slack.CallMethod("conversations.setTopic", map[string]string{"channel": c.ID, "topic": t.Topic}, nil); err != nil {
