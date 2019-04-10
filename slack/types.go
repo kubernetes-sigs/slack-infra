@@ -80,9 +80,9 @@ type Subteam struct {
 type Conversation struct {
 	ID                 string        `json:"id"`
 	Name               string        `json:"name"`
-	IsChannel          bool          `json:"bool"`
-	IsGroup            bool          `json:"bool"`
-	IsIM               bool          `json:"bool"`
+	IsChannel          bool          `json:"is_channel"`
+	IsGroup            bool          `json:"is_group"`
+	IsIM               bool          `json:"is_im"`
 	Created            int64         `json:"created"`
 	Creator            string        `json:"creator"`
 	IsArchived         bool          `json:"is_archived"`
