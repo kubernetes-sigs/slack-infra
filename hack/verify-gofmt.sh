@@ -23,7 +23,7 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "${REPO_ROOT}"
 
 # check for gofmt diffs
-diff=$(find . -name "*.go" | grep -v "\\/vendor\\/" | xargs gofmt -s -d 2>&1)
+diff=$(find . -name "*.go" | grep -v "\\/vendor\\/" | GO111MODULE=on xargs gofmt -s -d 2>&1)
 if [[ -n "${diff}" ]]; then
   echo "verify go fmt failed:"
   echo
