@@ -195,6 +195,9 @@ func matchesRegexList(s string, tests []*regexp.Regexp) bool {
 }
 
 func mergeUsers(target map[string]string, source map[string]string, r Restrictions) error {
+	if len(source) == 0 {
+		return nil
+	}
 	if !r.Users {
 		return fmt.Errorf("cannot define users in %q", r.Path)
 	}

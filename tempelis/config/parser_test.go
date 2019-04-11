@@ -281,6 +281,13 @@ func TestMergeUsers(t *testing.T) {
 			restrictions: defaultRestriction,
 			expectErr:    true,
 		},
+		{
+			name:         "doing nothing is fine regardless of permissions",
+			a:            map[string]string{"Katharine": "U12345678"},
+			b:            map[string]string{},
+			restrictions: Restrictions{Users: false},
+			expected:     map[string]string{"Katharine": "U12345678"},
+		},
 	}
 
 	for _, tc := range tests {
