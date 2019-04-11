@@ -87,7 +87,9 @@ func (r *Reconciler) reconcileUsergroups() ([]Action, []error) {
 	}
 
 	for _, o := range missingGroups {
-		actions = append(actions, deactivateUsergroupAction{id: o.ID, handle: o.Handle})
+		if o.DeleteTime == 0 {
+			actions = append(actions, deactivateUsergroupAction{id: o.ID, handle: o.Handle})
+		}
 	}
 
 	return actions, errors

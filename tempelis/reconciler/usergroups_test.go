@@ -83,6 +83,10 @@ func TestReconcileUsergroups(t *testing.T) {
 			newGroups:       []config.Usergroup{{Name: "pony-fans", LongName: "Pony Fans", Description: "Fans of ponies", Members: []string{"Katharine", "bentheelder"}}},
 			expectedActions: []Action{updateUsergroupMembersAction{id: "S12345678", name: "pony-fans", users: []string{"U11111111", "U12345678"}}},
 		},
+		{
+			name:        "don't try deleting and already-deleted group",
+			priorGroups: []slack.Subteam{{Handle: "pony-fans", ID: "S12345678", Name: "Pony Fans", Description: "Fans of ponies", Users: []string{"U12345678"}, DeleteTime: 10000}},
+		},
 	}
 
 	for _, tc := range tests {
