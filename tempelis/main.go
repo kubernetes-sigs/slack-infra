@@ -20,6 +20,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"path"
 
 	"sigs.k8s.io/slack-infra/slack"
 	"sigs.k8s.io/slack-infra/tempelis/config"
@@ -27,15 +28,17 @@ import (
 )
 
 type options struct {
-	dryRun     bool
-	config     string
-	authConfig string
+	dryRun       bool
+	config       string
+	restrictions string
+	authConfig   string
 }
 
 func parseOptions() options {
 	var o options
 	flag.BoolVar(&o.dryRun, "dry-run", true, "does nothing if true (which is the default)")
 	flag.StringVar(&o.config, "config", "", "path to a configuration file, or directory of files")
+	flag.StringVar(&o.restrictions, "restrictions", "", "path to a configuration file containing restrictions")
 	flag.StringVar(&o.authConfig, "auth", "", "path to slack auth")
 	flag.Parse()
 	return o
@@ -53,17 +56,24 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to stat %s: %v\n", o.config, err)
 	}
-	var c config.Config
+	p := config.NewParser()
+
+	if o.restrictions != "" {
+		if err := p.ParseFile(o.restrictions, path.Dir(o.restrictions)); err != nil {
+			log.Fatalf("Failed to parse restrictions file: %v.\n", err)
+		}
+	}
+
 	if stat.IsDir() {
-		c, err = config.ParseDir(o.config)
+		err = p.ParseDir(o.config)
 	} else {
-		c, err = config.ParseFile(o.config)
+		err = p.ParseFile(o.config, path.Dir(o.config))
 	}
 	if err != nil {
 		log.Fatalf("Failed to load config: %v\n", err)
 	}
 
-	r := reconciler.New(slack.New(sc), c)
+	r := reconciler.New(slack.New(sc), p.Config)
 	if err := r.Reconcile(o.dryRun); err != nil {
 		log.Fatalf("Reconciliation failed: %v\n", err)
 	}

@@ -28,13 +28,16 @@ type channelState struct {
 }
 
 func (c *channelState) init(s *slack.Client) error {
+	c.byName = map[string]*slack.Conversation{}
+	c.byID = map[string]*slack.Conversation{}
 	channels, err := s.GetPublicChannels()
 	if err != nil {
 		return err
 	}
 	for _, ch := range channels {
-		c.byName[ch.Name] = &ch
-		c.byID[ch.ID] = &ch
+		ch2 := ch
+		c.byName[ch.Name] = &ch2
+		c.byID[ch.ID] = &ch2
 	}
 	return nil
 }
@@ -68,7 +71,7 @@ func (c *channelState) namesToIDs(names []string) ([]string, error) {
 		if r, ok := c.byName[n]; ok {
 			result = append(result, r.ID)
 		} else {
-			missing = append(missing, r.Name)
+			missing = append(missing, n)
 		}
 	}
 

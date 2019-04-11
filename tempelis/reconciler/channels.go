@@ -42,7 +42,7 @@ func (r *Reconciler) reconcileChannels() ([]Action, []error) {
 					} else {
 						actions = append(actions, renameChannelAction{id: o.ID, oldName: oldName, newName: c.Name})
 					}
-					delete(missingChannels, o.Name)
+					delete(missingChannels, oldName)
 				}
 			} else {
 				errors = append(errors, fmt.Errorf("channel ID %s (for channel named %s) specified, but not known to Slack", c.ID, c.Name))
@@ -76,10 +76,13 @@ func (a createChannelAction) Describe() string {
 }
 
 func (a createChannelAction) Perform(reconciler *Reconciler) error {
-	c := slack.Conversation{}
-	if err := reconciler.slack.CallMethod("conversations.create", map[string]string{"name": a.name}, &c); err != nil {
+	ret := struct {
+		Channel slack.Conversation `json:"channel"`
+	}{}
+	if err := reconciler.slack.CallMethod("conversations.create", map[string]string{"name": a.name}, &ret); err != nil {
 		return fmt.Errorf("failed to create channel: %v", err)
 	}
+	c := ret.Channel
 	reconciler.channels.byName[c.Name] = &c
 	reconciler.channels.byID[c.Name] = &c
 	t := &reconciler.config.ChannelTemplate

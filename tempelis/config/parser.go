@@ -23,16 +23,29 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/bmatcuk/doublestar"
 	"sigs.k8s.io/yaml"
 )
 
+var (
+	emptyRegexp = regexp.MustCompile("")
+)
+
 type Parser struct {
 	Config Config
+	parsed map[string]struct{}
 }
 
-func (p *Parser) Parse(reader io.Reader) error {
+func NewParser() *Parser {
+	return &Parser{
+		parsed: map[string]struct{}{},
+	}
+}
+
+func (p *Parser) Parse(reader io.Reader, path string) error {
 	var c Config
 	content, err := ioutil.ReadAll(reader)
 	if err != nil {
@@ -42,21 +55,33 @@ func (p *Parser) Parse(reader io.Reader) error {
 		return fmt.Errorf("failed to parse yaml: %v", err)
 	}
 
-	if err := mergeUsers(p.Config.Users, c.Users); err != nil {
+	if p.Config.Users == nil {
+		p.Config.Users = map[string]string{}
+	}
+
+	restrictions, err := mergeRestrictions(p.Config.Restrictions, c.Restrictions)
+	if err != nil {
+		return fmt.Errorf("couldn't load restrictions: %v", err)
+	}
+	p.Config.Restrictions = restrictions
+
+	r := resolveRestrictions(restrictions, path)
+
+	if err := mergeUsers(p.Config.Users, c.Users, r); err != nil {
 		return fmt.Errorf("couldn't merge users: %v", err)
 	}
 
-	channels, err := mergeChannels(p.Config.Channels, c.Channels)
+	channels, err := mergeChannels(p.Config.Channels, c.Channels, r)
 	if err != nil {
 		return fmt.Errorf("couldn't merge channels: %v", err)
 	}
-	c.Channels = channels
+	p.Config.Channels = channels
 
-	usergroups, err := mergeUsergroups(p.Config.Usergroups, c.Usergroups)
+	usergroups, err := mergeUsergroups(p.Config.Usergroups, c.Usergroups, r)
 	if err != nil {
 		return fmt.Errorf("couldn't merge usergroups: %v", err)
 	}
-	c.Usergroups = usergroups
+	p.Config.Usergroups = usergroups
 
 	if !isTemplateEmpty(c.ChannelTemplate) {
 		if !isTemplateEmpty(p.Config.ChannelTemplate) {
@@ -68,43 +93,107 @@ func (p *Parser) Parse(reader io.Reader) error {
 	return nil
 }
 
-func (p *Parser) ParseFile(path string) error {
+func (p *Parser) ParseFile(path, basedir string) error {
+	if _, ok := p.parsed[path]; ok {
+		return nil
+	}
+	p.parsed[path] = struct{}{}
 	f, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("failed to open %s: %v", path, err)
 	}
 	defer f.Close()
-	if err := p.Parse(f); err != nil {
+	if !strings.HasPrefix(path, basedir) {
+		return fmt.Errorf("%q is not a prefix of %q", basedir, path)
+	}
+	if err := p.Parse(f, path[len(basedir):]); err != nil {
 		return fmt.Errorf("failed to parse %s: %v", path, err)
 	}
 	return nil
 }
 
+func (p *Parser) ParseDir(path string) error {
+	matches, err := doublestar.Glob(filepath.Join(path, "**/*.yaml"))
+	if err != nil {
+		return fmt.Errorf("failed to find config files: %v", err)
+	}
+
+	for _, f := range matches {
+		if err := p.ParseFile(f, path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func ParseFile(path string) (Config, error) {
-	p := Parser{}
-	if err := p.ParseFile(path); err != nil {
+	p := NewParser()
+	if err := p.ParseFile(path, path); err != nil {
 		return Config{}, err
 	}
 	return p.Config, nil
 }
 
 func ParseDir(path string) (Config, error) {
-	p := Parser{}
-
-	matches, err := doublestar.Glob(filepath.Join(path, "**.yaml"))
-	if err != nil {
-		return Config{}, fmt.Errorf("failed to find config files: %v", err)
-	}
-
-	for _, f := range matches {
-		if err := p.ParseFile(f); err != nil {
-			return Config{}, err
-		}
+	p := NewParser()
+	if err := p.ParseDir(path); err != nil {
+		return Config{}, err
 	}
 	return p.Config, nil
 }
 
-func mergeUsers(target map[string]string, source map[string]string) error {
+func resolveRestrictions(restrictions []Restrictions, path string) Restrictions {
+	for _, r := range restrictions {
+		if match, err := doublestar.Match(r.Path, path); err == nil && match {
+			return r
+		}
+	}
+	return Restrictions{Path: "*", Users: true, Channels: []*regexp.Regexp{emptyRegexp}, Usergroups: []*regexp.Regexp{emptyRegexp}, Template: true}
+}
+
+func mergeRestrictions(a []Restrictions, b []Restrictions) ([]Restrictions, error) {
+	if len(a) != 0 && len(b) != 0 {
+		return nil, fmt.Errorf("restrictions can only be defined once")
+	}
+	if len(a) != 0 {
+		return a, nil
+	}
+	ret := make([]Restrictions, 0, len(b))
+	for _, r := range b {
+		r.Channels = make([]*regexp.Regexp, 0, len(r.ChannelsString))
+		for _, p := range r.ChannelsString {
+			re, err := regexp.Compile(p)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse channel pattern %q for path %q: %v", p, r.Path, err)
+			}
+			r.Channels = append(r.Channels, re)
+		}
+		r.Usergroups = make([]*regexp.Regexp, 0, len(r.UsergroupsString))
+		for _, p := range r.UsergroupsString {
+			re, err := regexp.Compile(p)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse usergroup pattern %q for path %q: %v", p, r.Path, err)
+			}
+			r.Usergroups = append(r.Usergroups, re)
+		}
+		ret = append(ret, r)
+	}
+	return ret, nil
+}
+
+func matchesRegexList(s string, tests []*regexp.Regexp) bool {
+	for _, r := range tests {
+		if r.MatchString(s) {
+			return true
+		}
+	}
+	return false
+}
+
+func mergeUsers(target map[string]string, source map[string]string, r Restrictions) error {
+	if !r.Users {
+		return fmt.Errorf("cannot define users in %q", r.Path)
+	}
 	for k, v := range source {
 		if _, ok := target[k]; ok {
 			return fmt.Errorf("cannot overwrite users (duplicate user %s)", k)
@@ -114,7 +203,7 @@ func mergeUsers(target map[string]string, source map[string]string) error {
 	return nil
 }
 
-func mergeChannels(a []Channel, b []Channel) ([]Channel, error) {
+func mergeChannels(a []Channel, b []Channel, r Restrictions) ([]Channel, error) {
 	names := map[string]struct{}{}
 	ids := map[string]struct{}{}
 	for _, v := range a {
@@ -124,6 +213,9 @@ func mergeChannels(a []Channel, b []Channel) ([]Channel, error) {
 		}
 	}
 	for _, v := range b {
+		if !matchesRegexList(v.Name, r.Channels) {
+			return nil, fmt.Errorf("cannot define channel %q in %q", v.Name, r.Path)
+		}
 		if _, ok := names[v.Name]; ok {
 			return nil, fmt.Errorf("cannot overwrite channel definitions (duplicate channel name %s)", v.Name)
 		}
@@ -135,12 +227,15 @@ func mergeChannels(a []Channel, b []Channel) ([]Channel, error) {
 	return append(a, b...), nil
 }
 
-func mergeUsergroups(a []Usergroup, b []Usergroup) ([]Usergroup, error) {
+func mergeUsergroups(a []Usergroup, b []Usergroup, r Restrictions) ([]Usergroup, error) {
 	names := map[string]struct{}{}
 	for _, v := range a {
 		names[v.Name] = struct{}{}
 	}
 	for _, v := range b {
+		if !matchesRegexList(v.Name, r.Usergroups) {
+			return nil, fmt.Errorf("cannot define usergroup %q in %q", v.Name, r.Path)
+		}
 		if _, ok := names[v.Name]; ok {
 			return nil, fmt.Errorf("cannot usergroups (duplicate usergroup %s)", v.Name)
 		}

@@ -25,27 +25,22 @@ import (
 )
 
 func (r *Reconciler) reconcileUsergroups() ([]Action, []error) {
-	result := struct {
-		Usergroups []slack.Subteam `json:"usergroups"`
-	}{}
-	if err := r.slack.CallOldMethod("usergroups.list", map[string]string{"include_users": "true", "include_disabled": "true"}, &result); err != nil {
-		return nil, []error{fmt.Errorf("couldn't get usergroup list: %v", err)}
-	}
-
-	groupsByHandle := map[string]*slack.Subteam{}
 	missingGroups := map[string]*slack.Subteam{}
 
-	for _, g := range result.Usergroups {
-		groupsByHandle[g.Handle] = &g
-		missingGroups[g.Handle] = &g
+	for _, g := range r.groups.byID {
+		missingGroups[g.Handle] = g
 	}
 
 	var actions []Action
 	var errors []error
 	for _, g := range r.config.Usergroups {
 		delete(missingGroups, g.Name)
-		if o, ok := groupsByHandle[g.Name]; ok {
+		if o, ok := r.groups.byHandle[g.Name]; ok {
 			if g.External {
+				continue
+			}
+			if g.LongName == "" || g.Name == "" || g.Description == "" || len(g.Members) == 0 {
+				errors = append(errors, fmt.Errorf("usergroup configuration for %q is bad: all usergroups must have a name, long name, description, and at least one member", g.Name))
 				continue
 			}
 			// If we have a "deleted" group, but we found it here, it needs undeleting.
@@ -79,15 +74,15 @@ func (r *Reconciler) reconcileUsergroups() ([]Action, []error) {
 			}
 
 			if !stringSlicesEqual(o.Users, targetIDs) {
-				actions = append(actions, updateUsergroupMembersAction{id: o.ID, users: targetIDs})
+				actions = append(actions, updateUsergroupMembersAction{id: o.ID, name: o.Handle, users: targetIDs})
 			}
 		} else {
 			targetIDs, err := r.config.NamesToIDs(g.Members)
 			if err != nil {
-				errors = append(errors, fmt.Errorf("%s: %v", o.Name, err))
+				errors = append(errors, fmt.Errorf("%s: %v", g.Name, err))
 				continue
 			}
-			actions = append(actions, updateUsergroupAction{id: o.ID, description: g.Description, name: g.LongName, channelNames: g.Channels, create: true}, updateUsergroupMembersAction{id: o.ID, users: targetIDs})
+			actions = append(actions, updateUsergroupAction{handle: g.Name, description: g.Description, name: g.LongName, channelNames: g.Channels, create: true}, updateUsergroupMembersAction{name: g.Name, users: targetIDs})
 		}
 	}
 
@@ -146,6 +141,7 @@ func (a reactivateUsergroupAction) Perform(reconciler *Reconciler) error {
 
 type updateUsergroupAction struct {
 	id           string
+	handle       string
 	description  string
 	name         string
 	channelNames []string
@@ -153,7 +149,11 @@ type updateUsergroupAction struct {
 }
 
 func (a updateUsergroupAction) Describe() string {
-	return fmt.Sprintf("Unarchive channel: %s", a.name)
+	verb := "Update"
+	if a.create {
+		verb = "Create"
+	}
+	return fmt.Sprintf("%s usergroup %s (%s): name = %q, description = %q, channels = %v", verb, a.handle, a.id, a.name, a.description, a.channelNames)
 }
 
 func (a updateUsergroupAction) Perform(reconciler *Reconciler) error {
@@ -172,6 +172,7 @@ func (a updateUsergroupAction) Perform(reconciler *Reconciler) error {
 		"channels":    strings.Join(channelIDs, ","),
 		"description": a.description,
 		"name":        a.name,
+		"handle":      a.handle,
 	}
 
 	action := "usergroups.update"
@@ -179,22 +180,41 @@ func (a updateUsergroupAction) Perform(reconciler *Reconciler) error {
 		action = "usergroups.create"
 	}
 
-	if err := reconciler.slack.CallMethod(action, req, nil); err != nil {
+	ret := struct {
+		Usergroup slack.Subteam `json:"usergroup"`
+	}{}
+
+	if err := reconciler.slack.CallMethod(action, req, &ret); err != nil {
 		return fmt.Errorf("failed to update usergroup %s (%s): %v", a.name, a.id, err)
+	}
+	if a.create {
+		reconciler.groups.byHandle[ret.Usergroup.Handle] = &ret.Usergroup
+		reconciler.groups.byID[ret.Usergroup.ID] = &ret.Usergroup
 	}
 	return nil
 }
 
 type updateUsergroupMembersAction struct {
 	id    string
+	name  string
 	users []string
 }
 
 func (a updateUsergroupMembersAction) Describe() string {
-	return fmt.Sprintf("Set members of usergroup %s to %v", a.id, a.users)
+	return fmt.Sprintf("Set members of usergroup %s (%s) to %v", a.name, a.id, a.users)
 }
 
 func (a updateUsergroupMembersAction) Perform(reconciler *Reconciler) error {
+	if a.id == "" {
+		if a.name == "" {
+			return fmt.Errorf("internal error: updateUsergroupMembersAction: at least one of name and id must be specified")
+		}
+		if g, ok := reconciler.groups.byHandle[a.name]; ok {
+			a.id = g.ID
+		} else {
+			return fmt.Errorf("couldn't find the ID for the group %q", a.name)
+		}
+	}
 	if err := reconciler.slack.CallMethod("usergroups.users.update", map[string]string{"usergroup": a.id, "users": strings.Join(a.users, ",")}, nil); err != nil {
 		return fmt.Errorf("failed to update members of usergroup %s: %v", a.id, err)
 	}

@@ -18,6 +18,7 @@ package config
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -26,12 +27,25 @@ type Config struct {
 	Channels        []Channel         `json:"channels"`
 	Usergroups      []Usergroup       `json:"usergroups"`
 	ChannelTemplate ChannelTemplate   `json:"channel_template,omitempty"`
+	Restrictions    []Restrictions    `json:"restrictions"`
+}
+
+type Restrictions struct {
+	Path             string   `json:"path"`
+	Deny             bool     `json:"deny"`
+	Users            bool     `json:"users"`
+	ChannelsString   []string `json:"channels"`
+	UsergroupsString []string `json:"usergroups"`
+	Template         bool     `json:"template"`
+
+	Channels   []*regexp.Regexp
+	Usergroups []*regexp.Regexp
 }
 
 type Channel struct {
 	Name       string   `json:"name"`
 	ID         string   `json:"id,omitempty"`
-	Archived   bool     `json:"bool,omitempty"`
+	Archived   bool     `json:"archived,omitempty"`
 	Moderators []string `json:"moderators,omitempty"`
 }
 

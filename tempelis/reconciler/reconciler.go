@@ -28,6 +28,7 @@ type Reconciler struct {
 	slack    *slack.Client
 	config   config.Config
 	channels channelState
+	groups   usergroupState
 }
 
 func New(slack *slack.Client, config config.Config) *Reconciler {
@@ -35,12 +36,16 @@ func New(slack *slack.Client, config config.Config) *Reconciler {
 		slack:    slack,
 		config:   config,
 		channels: channelState{},
+		groups:   usergroupState{},
 	}
 }
 
 func (r *Reconciler) Reconcile(dryRun bool) error {
 	if err := r.channels.init(r.slack); err != nil {
 		return fmt.Errorf("failed to get initial channel state: %v", err)
+	}
+	if err := r.groups.init(r.slack); err != nil {
+		return fmt.Errorf("failed to get initial usergroup state: %v", err)
 	}
 	var actions []Action
 	var errors []error
@@ -63,16 +68,22 @@ func (r *Reconciler) Reconcile(dryRun bool) error {
 
 	if !dryRun && failed {
 		dryRun = true
-		log.Printf("We will not execute anything due to errors, but this what we would've done:")
+		log.Println("We will not execute anything due to errors, but this what we would've done:")
+	} else if dryRun {
+		log.Println("In dry run mode so taking no action, but this is what we would've done:")
 	}
 
-	for i, a := range actions {
-		log.Printf("Step %d: %s.\n", i+1, a.Describe())
-		if !dryRun {
-			if err := a.Perform(r); err != nil {
-				log.Printf("Failed: %v.\n", err)
+	if len(actions) > 0 {
+		for i, a := range actions {
+			log.Printf("Step %d: %s.\n", i+1, a.Describe())
+			if !dryRun {
+				if err := a.Perform(r); err != nil {
+					log.Printf("Failed: %v.\n", err)
+				}
 			}
 		}
+	} else {
+		log.Println("Nothing to do.")
 	}
 
 	if failed {
