@@ -85,6 +85,9 @@ func (p *Parser) Parse(reader io.Reader, path string) error {
 	p.Config.Usergroups = usergroups
 
 	if !isTemplateEmpty(c.ChannelTemplate) {
+		if !r.Template {
+			return fmt.Errorf("can't set channel template in %s", r.Path)
+		}
 		if !isTemplateEmpty(p.Config.ChannelTemplate) {
 			return errors.New("can't overwrite existing channel template")
 		}
