@@ -31,7 +31,8 @@ import (
 )
 
 var (
-	emptyRegexp = regexp.MustCompile("")
+	emptyRegexp        = regexp.MustCompile("")
+	defaultRestriction = Restrictions{Path: "*", Users: true, Channels: []*regexp.Regexp{emptyRegexp}, Usergroups: []*regexp.Regexp{emptyRegexp}, Template: true}
 )
 
 type Parser struct {
@@ -148,7 +149,7 @@ func resolveRestrictions(restrictions []Restrictions, path string) Restrictions 
 			return r
 		}
 	}
-	return Restrictions{Path: "*", Users: true, Channels: []*regexp.Regexp{emptyRegexp}, Usergroups: []*regexp.Regexp{emptyRegexp}, Template: true}
+	return defaultRestriction
 }
 
 func mergeRestrictions(a []Restrictions, b []Restrictions) ([]Restrictions, error) {
@@ -198,6 +199,9 @@ func mergeUsers(target map[string]string, source map[string]string, r Restrictio
 		if _, ok := target[k]; ok {
 			return fmt.Errorf("cannot overwrite users (duplicate user %s)", k)
 		}
+		if len(v) != 9 {
+			return fmt.Errorf("%s: %q is not a valid slack user ID", k, v)
+		}
 		target[k] = v
 	}
 	return nil
@@ -213,6 +217,9 @@ func mergeChannels(a []Channel, b []Channel, r Restrictions) ([]Channel, error) 
 		}
 	}
 	for _, v := range b {
+		if v.Name == "" {
+			return nil, fmt.Errorf("channels must have names")
+		}
 		if !matchesRegexList(v.Name, r.Channels) {
 			return nil, fmt.Errorf("cannot define channel %q in %q", v.Name, r.Path)
 		}
@@ -233,8 +240,22 @@ func mergeUsergroups(a []Usergroup, b []Usergroup, r Restrictions) ([]Usergroup,
 		names[v.Name] = struct{}{}
 	}
 	for _, v := range b {
+		if v.Name == "" {
+			return nil, fmt.Errorf("usergroups must have names")
+		}
 		if !matchesRegexList(v.Name, r.Usergroups) {
 			return nil, fmt.Errorf("cannot define usergroup %q in %q", v.Name, r.Path)
+		}
+		if !v.External {
+			if v.LongName == "" {
+				return nil, fmt.Errorf("usergroup %s must have a long name", v.Name)
+			}
+			if v.Description == "" {
+				return nil, fmt.Errorf("usergroup %s must have a description", v.Name)
+			}
+			if len(v.Members) == 0 {
+				return nil, fmt.Errorf("usergroup %s must have at least one member", v.Name)
+			}
 		}
 		if _, ok := names[v.Name]; ok {
 			return nil, fmt.Errorf("cannot usergroups (duplicate usergroup %s)", v.Name)

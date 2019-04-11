@@ -56,7 +56,11 @@ func (r *Reconciler) reconcileChannels() ([]Action, []error) {
 			}
 			delete(missingChannels, o.Name)
 		} else {
-			actions = append(actions, createChannelAction{name: c.Name})
+			if c.Archived {
+				errors = append(errors, fmt.Errorf("channel %s is new but already marked as archived, which is not permitted", c.Name))
+			} else {
+				actions = append(actions, createChannelAction{name: c.Name})
+			}
 		}
 	}
 

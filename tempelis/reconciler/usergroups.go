@@ -70,7 +70,7 @@ func (r *Reconciler) reconcileUsergroups() ([]Action, []error) {
 			needsUpdate = needsUpdate || !stringSlicesEqual(targetChannels, o.Prefs.Channels)
 
 			if needsUpdate {
-				actions = append(actions, updateUsergroupAction{id: o.ID, description: g.Description, name: g.LongName, channelNames: g.Channels})
+				actions = append(actions, updateUsergroupAction{id: o.ID, handle: g.Name, description: g.Description, name: g.LongName, channelNames: g.Channels})
 			}
 
 			if !stringSlicesEqual(o.Users, targetIDs) {
@@ -98,10 +98,8 @@ func stringSlicesEqual(a []string, b []string) bool {
 		return false
 	}
 	for i := range a {
-		for j := range b {
-			if a[i] != b[j] {
-				return false
-			}
+		if a[i] != b[i] {
+			return false
 		}
 	}
 	return true

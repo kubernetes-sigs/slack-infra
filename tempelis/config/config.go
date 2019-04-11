@@ -32,7 +32,6 @@ type Config struct {
 
 type Restrictions struct {
 	Path             string   `json:"path"`
-	Deny             bool     `json:"deny"`
 	Users            bool     `json:"users"`
 	ChannelsString   []string `json:"channels"`
 	UsergroupsString []string `json:"usergroups"`

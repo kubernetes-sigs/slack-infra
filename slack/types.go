@@ -57,23 +57,25 @@ type User struct {
 
 // Subteam represents a slack Subteam object.
 type Subteam struct {
-	ID          string   `json:"id"`
-	IsUsergroup bool     `json:"is_usergroup"`
-	Name        string   `json:"name"`
-	Handle      string   `json:"handle"`
-	Description string   `json:"description"`
-	UserCount   int      `json:"user_count"`
-	UpdatedBy   string   `json:"updated_by"`
-	CreatedBy   string   `json:"created_by"`
-	DeletedBy   string   `json:"deleted_by"`
-	CreateTime  int      `json:"date_create"`
-	UpdateTime  int      `json:"date_update"`
-	DeleteTime  int      `json:"date_delete"`
-	Users       []string `json:"users"`
-	Prefs       struct {
-		Channels []string `json:"channels"`
-		Groups   []string `json:"groups"`
-	} `json:"prefs"`
+	ID          string       `json:"id"`
+	IsUsergroup bool         `json:"is_usergroup"`
+	Name        string       `json:"name"`
+	Handle      string       `json:"handle"`
+	Description string       `json:"description"`
+	UserCount   int          `json:"user_count"`
+	UpdatedBy   string       `json:"updated_by"`
+	CreatedBy   string       `json:"created_by"`
+	DeletedBy   string       `json:"deleted_by"`
+	CreateTime  int          `json:"date_create"`
+	UpdateTime  int          `json:"date_update"`
+	DeleteTime  int          `json:"date_delete"`
+	Users       []string     `json:"users"`
+	Prefs       SubteamPrefs `json:"prefs"`
+}
+
+type SubteamPrefs struct {
+	Channels []string `json:"channels"`
+	Groups   []string `json:"groups"`
 }
 
 // Conversation represents a slack Conversation object.
