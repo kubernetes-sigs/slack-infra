@@ -57,15 +57,61 @@ type User struct {
 
 // Subteam represents a slack Subteam object.
 type Subteam struct {
-	ID          string `json:"id"`
-	IsUsergroup bool   `json:"is_usergroup"`
-	Name        string `json:"name"`
-	Handle      string `json:"handle"`
-	UserCount   int    `json:"user_count"`
-	UpdatedBy   string `json:"updated_by"`
-	CreatedBy   string `json:"created_by"`
-	DeletedBy   string `json:"deleted_by"`
-	CreateTime  int    `json:"date_create"`
-	UpdateTime  int    `json:"date_update"`
-	DeleteTime  int    `json:"date_delete"`
+	ID          string       `json:"id"`
+	IsUsergroup bool         `json:"is_usergroup"`
+	Name        string       `json:"name"`
+	Handle      string       `json:"handle"`
+	Description string       `json:"description"`
+	UserCount   int          `json:"user_count"`
+	UpdatedBy   string       `json:"updated_by"`
+	CreatedBy   string       `json:"created_by"`
+	DeletedBy   string       `json:"deleted_by"`
+	CreateTime  int          `json:"date_create"`
+	UpdateTime  int          `json:"date_update"`
+	DeleteTime  int          `json:"date_delete"`
+	Users       []string     `json:"users"`
+	Prefs       SubteamPrefs `json:"prefs"`
+}
+
+type SubteamPrefs struct {
+	Channels []string `json:"channels"`
+	Groups   []string `json:"groups"`
+}
+
+// Conversation represents a slack Conversation object.
+type Conversation struct {
+	ID                 string        `json:"id"`
+	Name               string        `json:"name"`
+	IsChannel          bool          `json:"is_channel"`
+	IsGroup            bool          `json:"is_group"`
+	IsIM               bool          `json:"is_im"`
+	Created            int64         `json:"created"`
+	Creator            string        `json:"creator"`
+	IsArchived         bool          `json:"is_archived"`
+	IsGeneral          bool          `json:"is_general"`
+	Unlinked           int           `json:"unlinked"`
+	NameNormalized     string        `json:"name_normalized"`
+	IsReadOnly         bool          `json:"is_read_only"`
+	IsShared           bool          `json:"is_shared"`
+	IsExtShared        bool          `json:"is_ext_shared"`
+	IsOrgShared        bool          `json:"is_org_shared"`
+	PendingShared      []interface{} ` json:"pending_shared"` // I have no idea what this is
+	IsPendingExtShared bool          `json:"is_pending_ext_shared"`
+	IsMember           bool          `json:"is_member"`
+	IsPrivate          bool          `json:"is_private"`
+	IsMPIM             bool          `json:"is_mpim"`
+	LastRead           string        `json:"last_read"`
+	Topic              struct {
+		Topic   string `json:"value"`
+		Creator string `json:"ID"`
+		LastSet int64  `json:"last_set"`
+	} `json:"topic"`
+	Purpose struct {
+		Purpose string `json:"value"`
+		Creator string `json:"ID"`
+		LastSet int64  `json:"last_set"`
+	} `json:"purpose"`
+	PreviousNames []string `json:"previous_names"`
+	NumMembers    int      `json:"num_members"`
+	Locale        string   `json:"locale"`
 }
