@@ -39,7 +39,12 @@ func parseFlags() options {
 	return o
 }
 
+func handleHealthz(w http.ResponseWriter, r *http.Request) {
+	_, _ = w.Write([]byte("ok"))
+}
+
 func runServer(h *handler) error {
+	http.HandleFunc("/healthz", handleHealthz)
 	http.Handle("/webhook", h)
 
 	port := os.Getenv("PORT")
