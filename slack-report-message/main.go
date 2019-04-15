@@ -37,10 +37,15 @@ func parseFlags() options {
 	return o
 }
 
+func handleHealthz(w http.ResponseWriter, r *http.Request) {
+	_, _ = w.Write([]byte("ok"))
+}
+
 func runServer(sl *slack.Client) {
 	h := &handler{client: sl}
 
-	http.Handle("/webhook", h)
+	http.HandleFunc("/healthz", handleHealthz)
+	http.Handle(os.Getenv("PATH_PREFIX")+"/webhook", h)
 
 	port := os.Getenv("PORT")
 	if port == "" {

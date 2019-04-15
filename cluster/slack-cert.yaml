@@ -1,0 +1,15 @@
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata:
+  name: slack-k8s-io
+spec:
+  domains:
+    - slack.k8s.io
+---
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata:
+  name: slack-kubernetes-io
+spec:
+  domains:
+    - slack.kubernetes.io
