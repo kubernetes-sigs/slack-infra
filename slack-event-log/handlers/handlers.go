@@ -41,7 +41,7 @@ func New(client *slack.Client) *Handler {
 
 // HandleWebhook can be passed to http.HandlerFunc and will perform all processing associated with
 // Slack webhooks.
-func (h *Handler) HandleWebhook(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Printf(fmt.Sprintf("failed to read body: %v", err))

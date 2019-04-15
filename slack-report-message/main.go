@@ -45,7 +45,7 @@ func runServer(sl *slack.Client) {
 	h := &handler{client: sl}
 
 	http.HandleFunc("/healthz", handleHealthz)
-	http.Handle("/webhook", h)
+	http.Handle(os.Getenv("PATH_PREFIX")+"/webhook", h)
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -45,7 +45,7 @@ func handleHealthz(w http.ResponseWriter, r *http.Request) {
 
 func runServer(h *handler) error {
 	http.HandleFunc("/healthz", handleHealthz)
-	http.Handle("/webhook", h)
+	http.Handle(os.Getenv("PATH_PREFIX")+"/webhook", h)
 
 	port := os.Getenv("PORT")
 	if port == "" {
