@@ -45,7 +45,7 @@ slack-event-log requires the following OAuth scopes on its Slack app:
 - `users:read`
 - `team:read`
 
-Additionally, `slack-event-log` also requires the following event subscriptions:
+Additionally, slack-event-log also requires the following event subscriptions:
 
 - `channel_archive`
 - `channel_created`
@@ -60,13 +60,15 @@ Additionally, `slack-event-log` also requires the following event subscriptions:
 - `team_rename`
 - `team_change`
 
+slack-event-log does not require any interactive components.
+
 The [slack app creation guide][app-creation] explains what to do with these values.
 
 ## Deployment
 
 Kubernetes runs slack-event-log in a Kubernetes cluster; check out the [config](../cluster/slack-event-log).
 
-slack-event-log can also run on Google App Engine. To do this, create a `config.json` file as in this
+slack-event-log can also run on Google App Engine. To do this, create a `config.json` file in this
 directory as described above and then run `gcloud app deploy`, using a Google Cloud Platform project
 that has [App Engine](https://console.cloud.google.com/appengine) enabled. For most Slack teams,
 slack-event-log should fit in the free quota.

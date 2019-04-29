@@ -26,12 +26,15 @@ installing the app. Check out the [slack app creation guide][app-creation] for m
 
 slack-report-message requires the following OAuth scopes:
 
+- `commands`
 - `incoming-webhook`
 - `users:read`
 
 slack-report-message requires the following interactive components:
 
 - Callback ID: `report_message`. Recommended action name: "Report message"
+
+slack-report-message does not require any event subscriptions.
 
 The [slack app creation guide][app-creation] explains what to do with these values.
 
@@ -40,12 +43,12 @@ The [slack app creation guide][app-creation] explains what to do with these valu
 Kubernetes does not run slack-report-message. Instead, we run [slack-moderator](../slack-moderator),
 which provides a superset of the functionality, but is consequently more invasive.
 
-slack-event-log can run on Google App Engine. To do this, create a `config.json` file as in this
+slack-report-message can run on Google App Engine. To do this, create a `config.json` file in this
 directory as described above and then run `gcloud app deploy`, using a Google Cloud Platform project
 that has [App Engine](https://console.cloud.google.com/appengine) enabled. For most Slack teams,
-slack-event-log should fit in the free quota.
+slack-report-message should fit in the free quota.
 
-slack-event-log can also run on Kubernetes, but we do not currently have any published Docker
+slack-report-message can also run on Kubernetes, but we do not currently have any published Docker
 images.
 
 <!-- TODO(Katharine): publish some Docker images. -->
