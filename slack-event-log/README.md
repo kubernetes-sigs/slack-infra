@@ -20,7 +20,7 @@ directly extracted from the webhook.
 
 ## Configuration
 
-`slack-event-log` requires a configuration file, by default called `config.json` in the working
+slack-event-log requires a configuration file, by default called `config.json` in the working
 directory. It must look like this:
 
 ```json
@@ -36,7 +36,7 @@ installing the app. Check out the [slack app creation guide][app-creation] for m
 
 ### Slack setup
 
-`slack-event-log` requires the following OAuth scopes on its Slack app:
+slack-event-log requires the following OAuth scopes on its Slack app:
 
 - `channels:read`
 - `incoming-webhook`
@@ -60,14 +60,16 @@ Additionally, `slack-event-log` also requires the following event subscriptions:
 - `team_rename`
 - `team_change`
 
+The [slack app creation guide][app-creation] explains what to do with these values.
+
 ## Deployment
 
-Kubernetes runs `slack-event-log` in a Kubernetes cluster; check out the [config](../cluster/slack-event-log).
+Kubernetes runs slack-event-log in a Kubernetes cluster; check out the [config](../cluster/slack-event-log).
 
-`slack-event-log` can also run on Google App Engine. To do this, create a `config.json` file as in this
+slack-event-log can also run on Google App Engine. To do this, create a `config.json` file as in this
 directory as described above and then run `gcloud app deploy`, using a Google Cloud Platform project
 that has [App Engine](https://console.cloud.google.com/appengine) enabled. For most Slack teams,
-`slack-event-log` should fit in the free quota.
+slack-event-log should fit in the free quota.
 
 
 [app-creation]: ../docs/app-creation.md
