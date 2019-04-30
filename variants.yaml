@@ -1,0 +1,11 @@
+variants:
+  slack-event-log:
+    TOOL: slack-event-log
+  slack-moderator:
+    TOOL: slack-moderator
+  slack-report-message:
+    TOOL: slack-report-message
+  slack-welcomer:
+    TOOL: slack-welcomer
+  tempelis:
+    TOOL: tempelis

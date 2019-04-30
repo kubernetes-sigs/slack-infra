@@ -1,4 +1,3 @@
-FROM alpine
-RUN apk update && apk add tzdata ca-certificates
+FROM gcr.io/distroless/base
 ADD slack-event-log /slack-event-log
 ENTRYPOINT ["/slack-event-log"]
