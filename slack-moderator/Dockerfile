@@ -1,4 +1,3 @@
-FROM alpine
-RUN apk update && apk add tzdata ca-certificates
+FROM gcr.io/distroless/base
 ADD slack-moderator /slack-moderator
 ENTRYPOINT ["/slack-moderator"]
