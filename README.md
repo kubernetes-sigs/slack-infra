@@ -4,7 +4,7 @@ This repo contains tooling for the [Kubernetes slack instance](http://kubernetes
 
 We have the following tools:
 
-- [slack-event-log](./slack-event-log): Event logging for global Kubernetes events. Watch users join, create/remove emoji, and so froth.
+- [slack-event-log](./slack-event-log): Event logging for global Kubernetes events. Watch users join, create/remove emoji, and so forth.
 - [slack-report-message](./slack-report-message): Enables users to optionally anonymously report messages, and sends those reports to some Slack channel
 - [slack-moderator](./slack-moderator): Like `slack-report-message`, but if a Slack Admin or Owner uses the "report" button, instead lets them remove users and/or their content.
 - [slack-welcomer](./slack-welcomer): Sends a welcome message to every user who joins Slack.
