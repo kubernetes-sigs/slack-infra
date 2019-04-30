@@ -21,9 +21,7 @@ For the purposes of the Kubernetes slack, we run these tools in a Kubernetes clu
 You can see our configuration for that in the [`cluster`](./cluster) directory.
 
 For a lower-effort deployment, we also support deployment to Google App Engine, with more deployment
-options coming soon.
-
-<!-- TODO(Katharine): add detailed links. -->
+options coming soon. The READMEs for each tool discuss deployment of each of them.
 
 ## Code of conduct
 
