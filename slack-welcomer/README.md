@@ -10,12 +10,11 @@ directory. It must look like this:
 ```json
 {
   "signingSecret": "some_slack_signing_secret",
-  "accessToken": "xoxp-some-slack-access-token-these-are-very-long-and-start-with-xoxp",
-  "webhook": "https://hooks.slack.com/services/Tsomething/Banotherthing/somerandomsecret"
+  "accessToken": "xoxb-some-bot-access-token-starting-with-xoxb",
 }
 ```
 
-`signingSecret`, `accessToken`, and `webhook` are all values provided by Slack when creating and
+`signingSecret` and `accessToken` are values provided by Slack when creating and
 installing the app. Check out the [slack app creation guide][app-creation] for more details.
 
 In addition, slack-welcomer requires a welcome message, written in `mrkdwn`, Slack's thing that is
@@ -30,7 +29,6 @@ slack-welcomer requires the following OAuth scopes:
 
 - `bot`
 - `chat:write:bot`
-- `im:write`
 - `users:read`
 
 Additionally, `slack-event-log` also requires the following event subscriptions:
@@ -39,12 +37,13 @@ Additionally, `slack-event-log` also requires the following event subscriptions:
 
 slack-welcomer does not require any interactive components.
 
-The [slack app creation guide][app-creation] explains what to do with these values.
+The [slack app creation guide][app-creation] explains what to do with these values. Additionally,
+you will want to create a bot user, using "Bot Users" in the left sidebar of the Slack app creation
+page. 
 
 ## Deployment
 
-Kubernetes does not yet run slack-welcomer, though when it does it will run in a Kubernetes cluster.
-Consequently, Docker images are not yet published (but will be eventually).
+Kubernetes runs slack-welcomer in a Kubernetes cluster; check out the [config](../cluster/slack-welcomer).
 
 slack-welcomer can run on Google App Engine. To do this, create `config.json` and `welcome.md` files in this
 directory as described above and then run `gcloud app deploy`, using a Google Cloud Platform project
