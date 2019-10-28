@@ -70,15 +70,15 @@ func (h *handler) removeFilesFromUser(targetUser string, since time.Time) (remov
 		if !hasMore {
 			break
 		}
-		page += 1
+		page ++
 	}
 	log.Printf("Got %d files to remove...\n", len(files))
 	for _, v := range files {
 		if err := h.removeFile(v); err != nil {
 			log.Printf("Failed to remove file %s: %v\n", v, err)
-			remaining += 1
+			remaining ++
 		} else {
-			removed += 1
+			removed ++
 		}
 	}
 	return removed, remaining, nil
@@ -164,15 +164,15 @@ func (h *handler) removeMessagesFromUser(targetUser string, since time.Time) (re
 		if !hasMore {
 			break
 		}
-		page += 1
+		page ++
 	}
 	log.Printf("Got %d messages to remove...\n", len(messages))
 	for _, v := range messages {
 		if err := h.removeMessage(v); err != nil {
 			log.Printf("Failed to remove message %s: %v\n", v, err)
-			remaining += 1
+			remaining ++
 		} else {
-			removed += 1
+			removed ++
 		}
 	}
 	return removed, remaining, nil
