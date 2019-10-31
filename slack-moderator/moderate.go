@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/slack-infra/slack"
 )
 
-const maxRemovalDuration = 48 * time.Hour
+const maxRemovalDuration = 8760 * time.Hour
 
 func (h *handler) handleModerateMessage(interaction slackInteraction, rw http.ResponseWriter) {
 	targetUser, err := h.getDisplayName(interaction.Message.User)
@@ -79,6 +79,10 @@ func (h *handler) handleModerateMessage(interaction slackInteraction, rw http.Re
 			{
 				Label: "48 hours",
 				Value: "48h",
+			},
+			{
+				Label: "1 year",
+				Value: "8760h",
 			},
 			// If you change these, you may need to change maxRemovalDuration accordingly.
 		},
