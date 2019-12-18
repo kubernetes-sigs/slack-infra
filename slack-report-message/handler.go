@@ -75,7 +75,7 @@ func (h *handler) handleReportMessage(interaction slackInteraction, rw http.Resp
 	textArea := slack.TextArea{
 		Name:  "message",
 		Label: "Why are you reporting this message?",
-		Hint:  "Moderators will see whatever you write here, along with the message being reported.",
+		Hint:  "The report will be send to public channel #iso-audit-log. In case of issues with confidential information please contact the ISR or more approriate roles directly.",
 	}
 	selectElement := slack.SelectElement{
 		Name:  "anonymous",
@@ -112,7 +112,7 @@ func (h *handler) handleReportMessage(interaction slackInteraction, rw http.Resp
 		Dialog: slack.Dialog{
 			CallbackID:     "send_report",
 			NotifyOnCancel: false,
-			Title:          "Report Message",
+			Title:          "ISO Audit Report",
 			Elements:       elements,
 			State:          string(state),
 		},
@@ -199,7 +199,7 @@ func (h *handler) handleReportSubmission(interaction slackInteraction, rw http.R
 	}
 
 	response := map[string]interface{}{
-		"text":             "Thank you! Your report has been submitted.",
+		"text":             "Thank you! Your audit report has been submitted.",
 		"response_type":    "ephemeral",
 		"replace_original": false,
 	}
