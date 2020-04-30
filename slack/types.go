@@ -115,3 +115,38 @@ type Conversation struct {
 	NumMembers    int      `json:"num_members"`
 	Locale        string   `json:"locale"`
 }
+
+// MessageChannelsEvent see here: https://api.slack.com/events/message.channels
+type MessageChannelsEvent struct {
+	Token    string `json:"token"`
+	TeamID   string `json:"team_id"`
+	APIAppID string `json:"api_app_id"`
+	Event    struct {
+		BotID      string `json:"bot_id"`
+		Type       string `json:"type"`
+		Text       string `json:"text"`
+		User       string `json:"user"`
+		Ts         string `json:"ts"`
+		Team       string `json:"team"`
+		BotProfile struct {
+			ID      string `json:"id"`
+			Deleted bool   `json:"deleted"`
+			Name    string `json:"name"`
+			Updated int    `json:"updated"`
+			AppID   string `json:"app_id"`
+			Icons   struct {
+				Image36 string `json:"image_36"`
+				Image48 string `json:"image_48"`
+				Image72 string `json:"image_72"`
+			} `json:"icons"`
+			TeamID string `json:"team_id"`
+		} `json:"bot_profile"`
+		Channel     string `json:"channel"`
+		EventTs     string `json:"event_ts"`
+		ChannelType string `json:"channel_type"`
+	} `json:"event"`
+	Type        string   `json:"type"`
+	EventID     string   `json:"event_id"`
+	EventTime   int      `json:"event_time"`
+	AuthedUsers []string `json:"authed_users"`
+}
