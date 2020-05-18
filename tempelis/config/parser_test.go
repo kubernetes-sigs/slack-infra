@@ -1,12 +1,9 @@
 /*
 Copyright 2019 The Kubernetes Authors.
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -249,28 +246,28 @@ func TestMergeUsers(t *testing.T) {
 		{
 			name:         "merging into an empty map works",
 			a:            map[string]string{},
-			b:            map[string]string{"Katharine": "U12345678", "bentheelder": "U23456789"},
+			b:            map[string]string{"Katharine": "U1234567890", "bentheelder": "U2345678901"},
 			restrictions: defaultRestriction,
-			expected:     map[string]string{"Katharine": "U12345678", "bentheelder": "U23456789"},
+			expected:     map[string]string{"Katharine": "U1234567890", "bentheelder": "U2345678901"},
 		},
 		{
 			name:         "merging disjoint maps works",
-			a:            map[string]string{"Katharine": "U12345678"},
-			b:            map[string]string{"bentheelder": "U23456789"},
+			a:            map[string]string{"Katharine": "U1234567890"},
+			b:            map[string]string{"bentheelder": "U2345678901"},
 			restrictions: defaultRestriction,
-			expected:     map[string]string{"Katharine": "U12345678", "bentheelder": "U23456789"},
+			expected:     map[string]string{"Katharine": "U1234567890", "bentheelder": "U2345678901"},
 		},
 		{
 			name:         "merging overlapping maps is an error",
-			a:            map[string]string{"Katharine": "U12345678"},
-			b:            map[string]string{"Katharine": "U12345679", "bentheelder": "U23456789"},
+			a:            map[string]string{"Katharine": "U1234567890"},
+			b:            map[string]string{"Katharine": "U1234567901", "bentheelder": "U2345678901"},
 			restrictions: defaultRestriction,
 			expectErr:    true,
 		},
 		{
 			name:         "merging when not permitted is an error",
 			a:            map[string]string{},
-			b:            map[string]string{"Katharine": "U12345678"},
+			b:            map[string]string{"Katharine": "U1234567890"},
 			restrictions: Restrictions{Users: false},
 			expectErr:    true,
 		},
@@ -283,10 +280,10 @@ func TestMergeUsers(t *testing.T) {
 		},
 		{
 			name:         "doing nothing is fine regardless of permissions",
-			a:            map[string]string{"Katharine": "U12345678"},
+			a:            map[string]string{"Katharine": "U1234567890"},
 			b:            map[string]string{},
 			restrictions: Restrictions{Users: false},
-			expected:     map[string]string{"Katharine": "U12345678"},
+			expected:     map[string]string{"Katharine": "U1234567890"},
 		},
 	}
 

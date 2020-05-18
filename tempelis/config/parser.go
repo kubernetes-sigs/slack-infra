@@ -205,7 +205,7 @@ func mergeUsers(target map[string]string, source map[string]string, r Restrictio
 		if _, ok := target[k]; ok {
 			return fmt.Errorf("cannot overwrite users (duplicate user %s)", k)
 		}
-		if len(v) != 9 {
+		if len(v) != 9 && len(v) != 11 {
 			return fmt.Errorf("%s: %q is not a valid slack user ID", k, v)
 		}
 		target[k] = v
