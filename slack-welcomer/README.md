@@ -21,7 +21,7 @@ In addition, slack-welcomer requires a welcome message, written in `mrkdwn`, Sla
 not really Markdown at all. No good documentation of mrkdwn exists, but the best can be found
 [on Slack's developer site](https://api.slack.com/docs/message-formatting).
 
-By default, the welcome message is expected to be found in `welcome.md` in the working directory. 
+By default, the welcome message is expected to be found in `welcome.md` in the working directory.
 
 ### Slack setup
 
@@ -39,7 +39,7 @@ slack-welcomer does not require any interactive components.
 
 The [slack app creation guide][app-creation] explains what to do with these values. Additionally,
 you will want to create a bot user, using "Bot Users" in the left sidebar of the Slack app creation
-page. 
+page.
 
 ## Deployment
 
