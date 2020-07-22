@@ -21,6 +21,7 @@ PACKAGES=(
   "slack-moderator"
   "slack-report-message"
   "slack-welcomer"
+  "slack-post-message"
 )
 
 go-build() {

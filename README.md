@@ -8,6 +8,7 @@ We have the following tools:
 - [slack-report-message](./slack-report-message): Enables users to optionally anonymously report messages, and sends those reports to some Slack channel
 - [slack-moderator](./slack-moderator): Like `slack-report-message`, but if a Slack Admin or Owner uses the "report" button, instead lets them remove users and/or their content.
 - [slack-welcomer](./slack-welcomer): Sends a welcome message to every user who joins Slack.
+- [slack-post-message](./slack-post-message): Enables users who are part of a given slack usergroup(s), to post message in multiple channel(s) using a Modal form
 - [Tempelis](./tempelis): Control your Slack setup with yaml config files. Combine with a CI system to implement Slack GitOps.
 
 ## Talk to us
