@@ -44,10 +44,10 @@ func (h *Handler) handleSubteamUpdated(body []byte) ([]byte, error) {
 		return nil, nil
 	}
 
-	// This group (@test-infra-oncall) is "modified" hourly and is usually an uninteresting noop,
+	// These groups (@test-infra-oncall, @google-build-admin) are "modified" hourly and are usually an uninteresting noop,
 	// just filter it all.
 	// TODO(Katharine): make this configurable (or maintain enough state to know this is a noop)
-	if subteam.ID == "SGLF0GUQH" {
+	if subteam.ID == "SGLF0GUQH" || subteam.ID == "S017N31TLNN" {
 		return nil, nil
 	}
 
