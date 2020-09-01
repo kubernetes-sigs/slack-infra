@@ -9,3 +9,5 @@ variants:
     TOOL: slack-welcomer
   tempelis:
     TOOL: tempelis
+  slack-post-message:
+    TOOL: slack-post-message
