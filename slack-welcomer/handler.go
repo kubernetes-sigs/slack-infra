@@ -124,14 +124,15 @@ func (h *handler) sendWelcome(uid string) error {
 		return fmt.Errorf("couldn't get welcome: %v", err)
 	}
 
-	// Slack requires that we first open an "IM channel" that we can then use to actually send messages.
+	// Slack requires that we first open a "conversation channel" that we can then use to actually send messages.
 	response := struct {
 		Channel struct {
 			ID string `json:"id"`
 		} `json:"channel"`
 	}{}
-	if err := h.client.CallMethod("im.open", map[string]string{"user": uid}, &response); err != nil {
-		return fmt.Errorf("couldn't open IM channel: %v", err)
+
+	if err := h.client.CallMethod("conversations.open", map[string]string{"users": uid}, &response); err != nil {
+		return fmt.Errorf("couldn't open a conversation channel: %v", err)
 	}
 	channel := response.Channel.ID
 
