@@ -157,7 +157,7 @@ func (c *Client) VerifySignature(body []byte, headers http.Header) error {
 		return fmt.Errorf("X-Slack-Request-Timestamp header missing")
 	}
 	tsInt, err := strconv.ParseInt(tsHeader, 10, 64)
-	if tsHeader == "" {
+	if err != nil {
 		return fmt.Errorf("couldn't parse timestamp %q: %v", tsHeader, err)
 	}
 	ts := time.Unix(tsInt, 0)
