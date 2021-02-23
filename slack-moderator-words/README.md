@@ -1,6 +1,6 @@
 # slack-moderator-words
 
-slack-moderator-words provides a moderation when positng some specific words, and will let the user know how to write better messages.
+slack-moderator-words provides a moderation when posting some specific words, and will let the user know how to write better messages.
 
 ## Configuration
 
