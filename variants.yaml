@@ -11,3 +11,5 @@ variants:
     TOOL: tempelis
   slack-post-message:
     TOOL: slack-post-message
+  slack-moderator-words:
+    TOOL: slack-moderator-words
