@@ -26,7 +26,7 @@ import (
 	"strings"
 
 	"sigs.k8s.io/slack-infra/slack"
-	"sigs.k8s.io/slack-infra/slack-moderate-words/model"
+	"sigs.k8s.io/slack-infra/slack-moderator-words/model"
 )
 
 type handler struct {
