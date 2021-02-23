@@ -16,11 +16,11 @@ spec:
     spec:
       containers:
       - name: slack-moderator-words
-        image: gcr.io/kubernetes-tools/slack-moderator-words:latest
+        image: gcr.io/k8s-staging-slack-infra/slack-moderator-words:latest
         imagePullPolicy: Always
         args:
           - --config-path=/etc/slack-moderator-words/config.json
-          - --filter-config-path=/etc/slack-moderator-words/filters.yaml
+          - --filter-config-path=/etc/filters/filters.yaml
         ports:
         - containerPort: 8080
           protocol: TCP
@@ -28,24 +28,19 @@ spec:
         - name: PATH_PREFIX
           value: /infra/moderator-words
         volumeMounts:
-        - mountPath: /etc/slack-moderator-words/
-          name: configs
-          readOnly: true
+        - mountPath: /etc/slack-moderator-words
+          name: config
+        - mountPath: /etc/filters
+          name: filters
         readinessProbe:
           httpGet:
             path: /healthz
             scheme: HTTP
-            port: 8077
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            scheme: HTTP
-            port: 8077
+            port: 8080
       volumes:
-       - name: configs
-         projected:
-          sources:
-          - secret:
-              name: slack-moderator-words-config
-          - secret:
-              name: slack-moderator-words-filters
+      - name: config
+        secret:
+          secretName: slack-moderator-words-config
+      - name: filters
+        configMap:
+          name: slack-moderator-words-filters
