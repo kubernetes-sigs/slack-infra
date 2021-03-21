@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: slack-moderator
-        image: gcr.io/kubernetes-tools/slack-moderator:v20191031-d27f8d0
+        image: gcr.io/k8s-staging-slack-infra/slack-moderator:v20210223-8525eb3
         args:
           - --config-path=/etc/slack-moderator/config.json
         ports:
