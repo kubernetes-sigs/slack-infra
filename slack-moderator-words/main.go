@@ -84,6 +84,25 @@ func main() {
 
 	s := slack.New(c)
 
+	// List all public channels and try to join.
+	// This is needed otherwise the bot cannot receive the events for the channels
+	// and cannot moderate it
+	channels, err := s.GetPublicChannels()
+	if err != nil {
+		log.Fatalf("Failed to list all public channels: %v", err)
+	}
+
+	for _, channel := range channels {
+		log.Printf("Public Channels: %s/%s\n", channel.ID, channel.Name)
+		req := map[string]interface{}{
+			"channel": channel.ID,
+		}
+		err = s.CallMethod("conversations.join", req, nil)
+		if err != nil {
+			log.Fatalf("Failed to join channel %s: %v", channel.Name, err)
+		}
+	}
+
 	h := &handler{client: s, filters: filters}
 	log.Fatal(runServer(h))
 }
