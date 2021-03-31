@@ -32,11 +32,14 @@ directory. It must look like this:
 slack-moderator-words requires the following OAuth scopes on its Slack app:
 
 - `channels:history`
+- `channels:join`
+- `channels:read`
 - `chat:write`
 - `chat:write.public`
 
 Additionally, slack-moderator-words also requires the following event subscriptions (Subscribe to events on behalf of users):
 
+- `channel_created`
 - `message.channels`
 
 slack-moderator-words does not require any interactive components.

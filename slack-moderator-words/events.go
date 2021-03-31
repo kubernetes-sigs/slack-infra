@@ -55,6 +55,7 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	// This is used for the first time when configuring the slack events
 	if event.Type == "url_verification" {
 		resp := &model.Challenge{}
 		resp.Challenge = event.Challenge
@@ -68,6 +69,37 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Triggered when is a new channel created
+	// and the bot will join to the channel
+	// Slack Event needed for this: channel_created
+	if event.Event.Type == "channel_created" {
+		b, err := json.Marshal(event.Event.Channel)
+		if err != nil {
+			panic(err)
+		}
+		channelCreated := &model.Channel{}
+		err = json.Unmarshal(b, channelCreated)
+		if err != nil {
+			log.Fatalf("Failed to decode event channel: %v", err)
+		}
+
+		log.Printf("New public channels: %s/%s\n", channelCreated.ID, channelCreated.Name)
+		req := map[string]interface{}{
+			"channel": channelCreated.ID,
+		}
+		err = h.client.CallMethod("conversations.join", req, nil)
+		if err != nil {
+			log.Fatalf("Failed to join channel %s: %v", channelCreated.Name, err)
+		}
+
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+		_, _ = rw.Write([]byte(""))
+		return
+	}
+
+	// When is a message from the channels the bot is listening
+	// Slack Event needed for this: message.channels
 	// reply ok rigth away
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(http.StatusOK)

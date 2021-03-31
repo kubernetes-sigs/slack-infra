@@ -33,15 +33,22 @@ type SlackEvent struct {
 }
 
 type Event struct {
-	Type        string `json:"type"`
-	Channel     string `json:"channel"`
-	User        string `json:"user"`
-	Text        string `json:"text"`
-	TS          string `json:"ts"`
-	EventTS     string `json:"event_ts"`
-	ThreadTS    string `json:"thread_ts"`
-	ChannelType string `json:"channel_type"`
-	BotID       string `json:"bot_id"`
+	Type        string      `json:"type"`
+	Channel     interface{} `json:"channel"`
+	User        string      `json:"user"`
+	Text        string      `json:"text"`
+	TS          string      `json:"ts"`
+	EventTS     string      `json:"event_ts"`
+	ThreadTS    string      `json:"thread_ts"`
+	ChannelType string      `json:"channel_type"`
+	BotID       string      `json:"bot_id"`
+}
+
+type Channel struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Creator string `json:"creator"`
+	Created int    `json:"created"`
 }
 
 type FilterConfig []struct {
