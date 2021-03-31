@@ -93,6 +93,10 @@ func main() {
 	}
 
 	for _, channel := range channels {
+		if channel.IsArchived {
+			log.Printf("Public Channel: %s/%s is archived, skipping...\n", channel.ID, channel.Name)
+			continue
+		}
 		log.Printf("Public Channels: %s/%s\n", channel.ID, channel.Name)
 		req := map[string]interface{}{
 			"channel": channel.ID,
