@@ -4,6 +4,12 @@ reviewers:
   - Katharine
   - jeefy
   - cpanato
+  - nikhita
+  - spiffxp
 approvers:
   - Katharine
   - jeefy
+  - nikhita
+  - spiffxp
+labels:
+- sig/contributor-experience
