@@ -23,6 +23,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v3"
 
@@ -93,18 +94,36 @@ func main() {
 	}
 
 	for _, channel := range channels {
+		log.Printf("Public Channel: %s/%s\n", channel.ID, channel.Name)
+
 		if channel.IsArchived {
 			log.Printf("Public Channel: %s/%s is archived, skipping...\n", channel.ID, channel.Name)
 			continue
 		}
-		log.Printf("Public Channels: %s/%s\n", channel.ID, channel.Name)
-		req := map[string]interface{}{
-			"channel": channel.ID,
+
+		if channel.IsMember {
+			log.Printf("Bot is already member of public Channel: %s/%s, skipping...\n", channel.ID, channel.Name)
+			continue
 		}
-		err = s.CallMethod("conversations.join", req, nil)
-		if err != nil {
-			log.Fatalf("Failed to join channel %s: %v", channel.Name, err)
+
+		for {
+			req := map[string]string{
+				"channel": channel.ID,
+			}
+			err := s.CallMethod("conversations.join", req, nil)
+			if err == nil {
+				break
+			}
+			if timeout, ok := err.(slack.ErrRateLimit); ok {
+				log.Printf("Slack is rate limiting us, trying again in %s...\n", timeout.Wait)
+				time.Sleep(timeout.Wait)
+				continue
+			}
+			if err != nil {
+				log.Fatalf("Failed to join channel %s: %v", channel.Name, err)
+			}
 		}
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	h := &handler{client: s, filters: filters}
