@@ -4,6 +4,8 @@ slack-post-message adds a "Post a message" button in the slack shortcuts section
 
 ![screenshot of a blank send message modal](./screenshot.png)
 
+This app is likely to be called "Announcement Bot" in the Slack Configuration.
+
 ## Configuration
 
 slack-post-message requires a configuration file, by default called `config.json` in the working
@@ -12,14 +14,15 @@ directory. If the location of the `config.json` is different, change the mount p
 ```json
 {
   "signingSecret": "some_slack_signing_secret",
-  "accessToken": "xoxp-some-slack-access-token-these-are-very-long-and-start-with-xoxp",
+  "accessToken": "xoxp-some-slack-access-token-these-are-very-long-and-start-with-xo",
   "userGroups": ["UsergroupID1", "UsergroupID2"]
 }
 ```
 `signingSecret`, `accessToken` are all values provided by Slack when creating and
 installing the app. Check out the [slack app creation guide][app-creation] for more details.
 
-For `userGroups`, from slack browser view find the ID(s) of the usergroups in the URL placeholder of the [browser](https://stackoverflow.com/questions/40940327/what-is-the-simplest-way-to-find-a-slack-team-id-and-a-channel-id)
+For `userGroups`, from slack browser view find the ID(s) of the usergroups in the URL placeholder of the [browser](https://stackoverflow.com/questions/40940327/what-is-the-simplest-way-to-find-a-slack-team-id-and-a-channel-id).  At this time,
+for Kubernetes Slack, the authorized group is `contributor-comms`, with ID `STZT16J91`.
 
 ### Slack setup
 
@@ -32,11 +35,11 @@ For `userGroups`, from slack browser view find the ID(s) of the usergroups in th
 
 - `slack-post-message` requires the following interactive components:
 
-  - Callback ID: `write_message`
-  - Recommended action name: "Post message"
-  - The location required is 'Global'
+- Set the request URL for the interactive component appropriately. The URL is currently configured as `https://slack-infra.k8s.io/$PATH_PREFIX/webhook`. *PATH_PREFIX* is set as environment variable in [deployment.yaml](../cluster/slack-post-message/deployment.yaml)
 
-- Set the request URL for the interactive component appropriately. The URL is currently configured as `$PATH_PREFIX/webhook`. *PATH_PREFIX* is set as environment variable in [deployment.yaml](../cluster/slack-post-message/deployment.yaml)
+  - The location required is 'Global'
+  - Recommended action name: "Post message"
+  - Callback ID: `write_message`
 
 - slack-post-message does not require any event subscriptions
 

@@ -2,6 +2,8 @@
 
 slack-moderator-words provides a moderation when posting some specific words, and will let the user know how to write better messages.
 
+In Kubenetes slack, this app is usually set up as "Kubernetes Moderator Words".
+
 ## Configuration
 
 slack-moderator-words requires a configuration file, by default called `config.json` in the working
@@ -10,7 +12,7 @@ directory. It must look like this:
 ```json
 {
   "signingSecret": "some_slack_signing_secret",
-  "accessToken": "xoxp-some-slack-access-token-these-are-very-long-and-start-with-xoxp",
+  "accessToken": "xoxp-some-slack-access-token-these-are-very-long-and-start-with-xo",
 }
 ```
 
@@ -37,7 +39,8 @@ slack-moderator-words requires the following OAuth scopes on its Slack app:
 - `chat:write`
 - `chat:write.public`
 
-Additionally, slack-moderator-words also requires the following event subscriptions (Subscribe to events on behalf of users):
+Additionally, slack-moderator-words also requires the following Workspace event 
+subscriptions (Subscribe to events on behalf of users):
 
 - `channel_created`
 - `message.channels`
