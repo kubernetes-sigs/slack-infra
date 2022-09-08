@@ -38,7 +38,16 @@ channel it sends messages to now.
 
 ![screenshot of Slack authorization prompt with a channel requested](./images/authorize.png)
 
-### Step 4: Create your config.json
+### Step 4: Add Collaborators
+
+In order to prevent loss of control over an app, please add multiple Collaborators
+who have admin rights in each app.  This should include at least four of the
+people in [the `k8s-infra-rbac-slack-infra` group](https://github.com/kubernetes/k8s.io/blob/main/groups/sig-contributor-experience/groups.yaml),
+or ideally all of them.
+
+![screenshot of collaborators for an app](./images/collaborators.png)
+
+### Step 5: Create your config.json
 
 You now have all the information you need to create the `config.json` for most tools.
 
@@ -47,10 +56,14 @@ You now have all the information you need to create the `config.json` for most t
 ```json
 {
   "signingSecret": "some_slack_signing_secret",
-  "accessToken": "xoxp-some-slack-access-token-these-are-very-long-and-start-with-xoxp",
+  "accessToken": "xoxp-some-slack-access-token-these-are-very-long-and-start-with-xo",
   "webhook": "https://hooks.slack.com/services/Tsomething/Banotherthing/somerandomsecret"
 }
 ```
+
+Almost all apps require the `signingSecret` and the `accessToken`.  Depending on 
+the app, it may require other settings; see the docs for each individual app
+to find out what.
 
 #### `accessToken`
 
@@ -72,12 +85,12 @@ Your Workspace".
 If you have ended up with multiple URLs here, pick the one corresponding to the channel you want to
 send messages to.
 
-### Step 5: Deploy your service
+### Step 6: Deploy your service
 
 We aren't done here, but Slack expects the app to be up and responsive before some configuration
 can be completed. Refer to the relevant README for more details.
 
-### Step 6: Set up any event subscriptions
+### Step 7: Set up any event subscriptions
 
 If the tool you are deploying needs event subscriptions, set these up now.
 
@@ -96,13 +109,15 @@ Workplace Events" section.
 
 ![screenshot of Subscribe to Events](./images/subscibe-to-events.png)
 
-### Step 7: Set up any interactive components
+### Step 8: Set up any interactive components
 
 If the tool you are deploying has interactive components, set these up now. 
 
 On the "Interactive Commands" page, set the toggle switch to On, and then enter the interactivity
-endpoint for your service in "Request URL" under "Interactivity". (tip: probably the URL you deployed
-it to, plus `/webhook`). Unlike event subscriptions, Slack will not try to verify the URL.
+endpoint for your service in "Request URL" under "Interactivity". Check the 
+[ingress configuration](https://github.com/kubernetes/k8s.io/blob/main/apps/slack-infra/resources/ingress.yaml)
+to find out what this URL should be. The URL may need `/webhook/` added.
+Unlike event subscriptions, Slack will not try to verify the URL.
 
 Once interactive commands are enabled, add the actions specified in the tool's README. While the
 value for "Callback ID" must be exactly what is specified in the tool's README, the Action Name and
@@ -112,7 +127,7 @@ Description can be anything you like. A preview is shown on the left.
 
 Be sure to click "Save Changes" in the bottom right corner of the Interactive Commands page.
 
-### Step 8: Optionally, customise the app
+### Step 9: Optionally, customise the app
 
 If you want to change your app's avatar from the default, you can change it under "Display
 Information". Note, annoyingly, that all the fields are mandatory despite defaulting to be unset.
@@ -120,3 +135,12 @@ Information". Note, annoyingly, that all the fields are mandatory despite defaul
 ### Done!
 
 Tada!
+
+## Additional Notes
+
+Slack has two different sites for managing apps, and limited navigation between
+the two sites. `https://api.slack.com/apps/` is the actual app creation and 
+configuration site for apps you own or collaborate on, and `https://app.slack.com/apps-manage`,
+which lists all the apps for our slack, but has no clear navigation to changing
+the actual setup for an app.  Since the latter is the "Manage Apps" link from
+the Slack Admin interface, follow the other URL from these docs.
