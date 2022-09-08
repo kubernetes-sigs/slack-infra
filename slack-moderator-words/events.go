@@ -23,8 +23,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
-
+	"regexp"
 	"sigs.k8s.io/slack-infra/slack"
 	"sigs.k8s.io/slack-infra/slack-moderator-words/model"
 )
@@ -115,7 +114,12 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if h.filters != nil {
 		for _, filter := range h.filters {
 			for _, word := range filter.Triggers {
-				if strings.Contains(event.Event.Text, word) {
+				matched, err := regexp.MatchString(word, event.Event.Text)
+				if err != nil {
+					logError(rw, "Failed to match string for trigger %s: %v", word, err)
+					continue
+				}
+				if matched {
 					req := map[string]interface{}{
 						"channel": event.Event.Channel,
 						"user":    event.Event.User,

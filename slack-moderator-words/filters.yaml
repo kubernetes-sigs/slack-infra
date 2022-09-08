@@ -1,4 +1,4 @@
 - triggers:
-  - guys
+  - (?i)guys
   action: chat.postEphemeral
   message: "May I suggest \"all\" instead when addessing a group of people? Thank you. :slightly_smiling_face:"
