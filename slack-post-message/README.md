@@ -21,8 +21,12 @@ directory. If the location of the `config.json` is different, change the mount p
 `signingSecret`, `accessToken` are all values provided by Slack when creating and
 installing the app. Check out the [slack app creation guide][app-creation] for more details.
 
-For `userGroups`, from slack browser view find the ID(s) of the usergroups in the URL placeholder of the [browser](https://stackoverflow.com/questions/40940327/what-is-the-simplest-way-to-find-a-slack-team-id-and-a-channel-id).  At this time,
-for Kubernetes Slack, the authorized group is `contributor-comms`, with ID `STZT16J91`.
+For `userGroups`, from slack browser view find the ID(s) of the usergroups in the URL placeholder of the [browser](https://stackoverflow.com/questions/40940327/what-is-the-simplest-way-to-find-a-slack-team-id-and-a-channel-id).
+
+In our specific deployment for kubernetes slack, we use the id for `@contributor-comms` group as shown below:
+```
+"userGroups": ["STZT16J91"]
+```
 
 ### Slack setup
 
