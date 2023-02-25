@@ -110,12 +110,18 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("[EVENT] %+v", event)
-
 	if h.filters != nil {
+
+		// Control if we will log the full event
+		matched := false
+
 		for _, filter := range h.filters {
 			for _, word := range filter.Triggers {
 				if strings.Contains(event.Event.Text, word) {
+
+					matched = true
+					log.Printf("[MATCH] Filter word '%s' found in event text, logging enabled for full event.", word)
+
 					req := map[string]interface{}{
 						"channel": event.Event.Channel,
 						"user":    event.Event.User,
@@ -132,6 +138,11 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+		}
+
+		// Only log events that match one or more filters
+		if matched {
+			log.Printf("[EVENT] %+v", event)
 		}
 	}
 }
