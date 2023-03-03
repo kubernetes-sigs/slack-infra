@@ -19,6 +19,7 @@
 PACKAGES=(
   "slack-event-log"
   "slack-moderator"
+  "slack-moderator-words"
   "slack-report-message"
   "slack-welcomer"
   "slack-post-message"
