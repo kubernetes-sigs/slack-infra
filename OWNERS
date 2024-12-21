@@ -1,15 +1,17 @@
 # See the OWNERS docs at https://go.k8s.io/owners
 
 reviewers:
-  - Katharine
-  - jeefy
-  - cpanato
-  - nikhita
-  - spiffxp
+  - slack-infra-reviewers
+
 approvers:
+  - slack-infra-approvers
+  - sig-contributor-experience-leads
+  - sig-k8s-infra-leads
+
+labels:
+  - sig/contributor-experience
+
+emeritus_approvers:
   - Katharine
-  - jeefy
   - nikhita
   - spiffxp
-labels:
-- sig/contributor-experience

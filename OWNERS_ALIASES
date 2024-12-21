@@ -1,0 +1,28 @@
+# See the OWNERS docs at https://go.k8s.io/owners
+
+aliases:
+  slack-infra-approvers:
+    - coderanger
+    - cpanato
+    - jberkus
+    - jeefy
+    - mrbobbytables
+
+  slack-infra-reviewers:
+    - coderanger
+    - cpanato
+    - jberkus
+    - jeefy
+    - mrbobbytables
+
+  sig-contributor-experience-leads:
+    - MadhavJivrajani
+    - Priyankasaggu11929
+    - kaslin
+    - palnabarun
+
+  sig-k8s-infra-leads:
+    - BenTheElder
+    - dims
+    - upodroid
+    - xmudrii
