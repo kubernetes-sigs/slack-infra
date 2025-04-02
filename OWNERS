@@ -1,15 +1,25 @@
 # See the OWNERS docs at https://go.k8s.io/owners
 
 reviewers:
-  - Katharine
-  - jeefy
+  - BenTheElder
+  - coderanger
   - cpanato
-  - nikhita
-  - spiffxp
-approvers:
-  - Katharine
+  - jberkus
   - jeefy
+  - mrbobbytables
+
+approvers:
+  - BenTheElder
+  - coderanger
+  - cpanato
+  - jberkus
+  - jeefy
+  - mrbobbytables
+
+labels:
+  - sig/contributor-experience
+
+emeritus_approvers:
+  - Katharine
   - nikhita
   - spiffxp
-labels:
-- sig/contributor-experience
