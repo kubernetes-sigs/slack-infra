@@ -2,7 +2,7 @@
 
 slack-moderator-words provides a moderation when posting some specific words, and will let the user know how to write better messages.
 
-In Kubenetes slack, this app is usually set up as "Kubernetes Moderator Words".
+In Kubernetes slack, this app is usually set up as "Kubernetes Moderator Words".
 
 ## Configuration
 
