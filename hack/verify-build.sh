@@ -23,6 +23,7 @@ PACKAGES=(
   "slack-report-message"
   "slack-welcomer"
   "slack-post-message"
+  "slack-inactive-detector"
 )
 
 go-build() {

@@ -10,6 +10,7 @@ We have the following tools:
 - [slack-moderator-words](./slack-moderator-words): Displays a message to users if they use non-inclusive langauge
 - [slack-welcomer](./slack-welcomer): Sends a welcome message to every user who joins Slack.
 - [slack-post-message](./slack-post-message): Enables users who are part of a given slack usergroup(s), to post message in multiple channel(s) using a Modal form
+- [slack-inactive-detector](./slack-inactive-detector): Detects inactive users in a Slack workspace or specific channels based on configurable inactivity periods.
 - [Tempelis](./tempelis): Control your Slack setup with yaml config files. Combine with a CI system to implement Slack GitOps.
 
 ## Talk to us
