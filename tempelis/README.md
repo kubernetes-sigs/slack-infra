@@ -180,7 +180,7 @@ performs some action, and then exits.
 In Kubernetes, we have it set up as a CI presubmit and postsubmit. The presubmit runs using a
 read-only slack app in dry-run mode, and the postsubmit uses a read/write slack app with `--dry-run=false`.
 
-You can take a look at [the presubmit](https://github.com/kubernetes/test-infra/blob/120245b29a7f174f91369da541ff6f82dffcb1f8/config/jobs/kubernetes/community/community-presubmit.yaml#L20-L41)
-and [the postsubmit](https://github.com/kubernetes/test-infra/blob/120245b29a7f174f91369da541ff6f82dffcb1f8/config/jobs/kubernetes/test-infra/test-infra-trusted.yaml#L480-L504).
+You can take a look at [the presubmit](https://github.com/kubernetes/test-infra/blob/1b01e0b752ff9ce6647e032e258426cedc6f2819/config/jobs/kubernetes/community/community-presubmit.yaml#L27)
+and [the postsubmit](https://github.com/kubernetes/test-infra/blob/1b01e0b752ff9ce6647e032e258426cedc6f2819/config/jobs/kubernetes/sig-k8s-infra/trusted/sig-contribex-tempelis.yaml#L2-L31).
 
 [app-creation]: ../docs/app-creation.md
