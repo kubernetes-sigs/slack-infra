@@ -29,6 +29,7 @@ import (
 
 type options struct {
 	dryRun       bool
+	validateOnly bool
 	config       string
 	restrictions string
 	authConfig   string
@@ -37,6 +38,7 @@ type options struct {
 func parseOptions() options {
 	var o options
 	flag.BoolVar(&o.dryRun, "dry-run", true, "does nothing if true (which is the default)")
+	flag.BoolVar(&o.validateOnly, "validate-only", false, "only validate config without connecting to Slack (useful for presubmits)")
 	flag.StringVar(&o.config, "config", "", "path to a configuration file, or directory of files")
 	flag.StringVar(&o.restrictions, "restrictions", "", "path to a configuration file containing restrictions")
 	flag.StringVar(&o.authConfig, "auth", "", "path to slack auth")
@@ -46,11 +48,6 @@ func parseOptions() options {
 
 func main() {
 	o := parseOptions()
-
-	sc, err := slack.LoadConfig(o.authConfig)
-	if err != nil {
-		log.Fatalf("Failed to load slack auth config: %v.\n", err)
-	}
 
 	stat, err := os.Stat(o.config)
 	if err != nil {
@@ -71,6 +68,17 @@ func main() {
 	}
 	if err != nil {
 		log.Fatalf("Failed to load config: %v\n", err)
+	}
+
+	// If validate-only mode, just validate the config and exit
+	if o.validateOnly {
+		log.Println("Configuration validation successful!")
+		return
+	}
+
+	sc, err := slack.LoadConfig(o.authConfig)
+	if err != nil {
+		log.Fatalf("Failed to load slack auth config: %v.\n", err)
 	}
 
 	r := reconciler.New(slack.New(sc), p.Config)
