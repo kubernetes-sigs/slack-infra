@@ -13,5 +13,3 @@ variants:
     TOOL: slack-post-message
   slack-moderator-words:
     TOOL: slack-moderator-words
-  slackin:
-    TOOL: slackin

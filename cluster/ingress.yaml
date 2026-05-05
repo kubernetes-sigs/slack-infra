@@ -6,9 +6,6 @@ metadata:
     kubernetes.io/ingress.global-static-ip-name: ingress-new
     networking.gke.io/managed-certificates: slack-k8s-io, slack-kubernetes-io
 spec:
-  backend:
-    serviceName: slackin2
-    servicePort: 80
   rules:
     - http:
         paths:
