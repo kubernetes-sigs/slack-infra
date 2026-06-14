@@ -17,8 +17,10 @@ limitations under the License.
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -43,9 +45,7 @@ func handleHealthz(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("ok"))
 }
 
-func runServer(sl *slack.Client, o options) {
-	h := &handler{client: sl, messagePath: o.messagePath}
-
+func runServer(h *handler) error {
 	http.HandleFunc("/healthz", handleHealthz)
 	http.Handle(os.Getenv("PATH_PREFIX")+"/webhook", h)
 
@@ -56,7 +56,21 @@ func runServer(sl *slack.Client, o options) {
 	}
 
 	log.Printf("Listening on port %s", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+}
+
+func loadAdminToken(path string) (string, error) {
+	extraConf := struct {
+		AdminToken string `json:"adminToken"`
+	}{}
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("couldn't open file: %v", err)
+	}
+	if err := json.Unmarshal(content, &extraConf); err != nil {
+		return "", fmt.Errorf("couldn't parse config: %v", err)
+	}
+	return extraConf.AdminToken, nil
 }
 
 func main() {
@@ -65,6 +79,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", o.configPath, err)
 	}
+	adminToken, err := loadAdminToken(o.configPath)
+	if err != nil {
+		log.Fatalf("Failed to load admin token from %s: %v", o.configPath, err)
+	}
 	s := slack.New(c)
-	runServer(s, o)
+
+	h := &handler{client: s, messagePath: o.messagePath, adminToken: adminToken}
+	log.Fatal(runServer(h))
 }
