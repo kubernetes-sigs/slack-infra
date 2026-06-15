@@ -107,32 +107,46 @@ func (h *handler) handleURLVerification(body []byte) ([]byte, error) {
 }
 
 func (h *handler) handleEvent(body []byte) ([]byte, error) {
-	event := struct {
+	t := struct {
 		Event struct {
-			Type    string     `json:"type"`
-			SubType string     `json:"subtype"`
-			User    slack.User `json:"user"`
-			UserID  string     `json:"user_id"`
-			Channel string     `json:"channel"`
-			Ts      string     `json:"ts"`
-			BotID   string     `json:"bot_id"`
+			Type string `json:"type"`
 		} `json:"event"`
 	}{}
-	if err := json.Unmarshal(body, &event); err != nil {
+	if err := json.Unmarshal(body, &t); err != nil {
 		return nil, fmt.Errorf("failed to parse JSON: %v", err)
 	}
 
-	switch event.Event.Type {
+	switch t.Event.Type {
 	case "team_join":
+		event := struct {
+			Event struct {
+				User slack.User `json:"user"`
+			} `json:"event"`
+		}{}
+		if err := json.Unmarshal(body, &event); err != nil {
+			return nil, fmt.Errorf("failed to parse JSON: %v", err)
+		}
 		if err := h.sendWelcome(event.Event.User.ID); err != nil {
 			return nil, fmt.Errorf("failed to send welcome: %v", err)
 		}
 	case "message":
+		event := struct {
+			Event struct {
+				SubType string `json:"subtype"`
+				User    string `json:"user"`
+				Channel string `json:"channel"`
+				Ts      string `json:"ts"`
+				BotID   string `json:"bot_id"`
+			} `json:"event"`
+		}{}
+		if err := json.Unmarshal(body, &event); err != nil {
+			return nil, fmt.Errorf("failed to parse JSON: %v", err)
+		}
 		if event.Event.BotID != "" || event.Event.SubType == "bot_message" {
 			return []byte{}, nil
 		}
-		if guardedChannels[event.Event.Channel] && event.Event.UserID != "" {
-			if err := h.enforceWorkflowOnly(event.Event.Channel, event.Event.UserID, event.Event.Ts); err != nil {
+		if guardedChannels[event.Event.Channel] && event.Event.User != "" {
+			if err := h.enforceWorkflowOnly(event.Event.Channel, event.Event.User, event.Event.Ts); err != nil {
 				return nil, fmt.Errorf("failed to enforce channel rules: %v", err)
 			}
 		}
