@@ -24,9 +24,11 @@ import (
 
 // Config is the information needed to communicate with Slack.
 type Config struct {
-	SigningSecret string `json:"signingSecret"`
-	WebhookURL    string `json:"webhook"`
-	AccessToken   string `json:"accessToken"`
+	SigningSecret   string   `json:"signingSecret"`
+	WebhookURL      string   `json:"webhook"`
+	AccessToken     string   `json:"accessToken"`
+	AdminToken      string   `json:"adminToken"`
+	GuardedChannels []string `json:"guardedChannels"`
 }
 
 // LoadConfig loads a Config from a JSON file.

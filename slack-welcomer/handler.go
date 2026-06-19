@@ -27,20 +27,19 @@ import (
 	"sigs.k8s.io/slack-infra/slack"
 )
 
-var guardedChannels = map[string]bool{
-	"C25QWBR71": true, // #kubernetes-careers
-}
-
-const workflowNotice = `Hi there! Your message in <#%s> was removed because that channel only accepts posts submitted via the official workflow.
+const (
+	workflowNotice = `Hi there! Your message in <#%s> was removed because that channel only accepts posts submitted via the official workflow.
 
 To post a job listing or resume, please use the workflow shortcut (:zap:) in that channel.
 
 If you have questions, reach out in #slack-admins.`
 
+	maxRetries = 5
+)
+
 type handler struct {
 	client      *slack.Client
 	messagePath string
-	adminToken  string
 }
 
 func logError(rw http.ResponseWriter, format string, args ...interface{}) {
@@ -145,7 +144,7 @@ func (h *handler) handleEvent(body []byte) ([]byte, error) {
 		if event.Event.BotID != "" || event.Event.SubType == "bot_message" {
 			return []byte{}, nil
 		}
-		if guardedChannels[event.Event.Channel] && event.Event.User != "" {
+		if h.isGuardedChannel(event.Event.Channel) && event.Event.User != "" {
 			if err := h.enforceWorkflowOnly(event.Event.Channel, event.Event.User, event.Event.Ts); err != nil {
 				return nil, fmt.Errorf("failed to enforce channel rules: %v", err)
 			}
@@ -153,6 +152,15 @@ func (h *handler) handleEvent(body []byte) ([]byte, error) {
 	}
 
 	return []byte{}, nil
+}
+
+func (h *handler) isGuardedChannel(channel string) bool {
+	for _, c := range h.client.Config.GuardedChannels {
+		if c == channel {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *handler) getUserInfo(id string) (slack.User, error) {
@@ -187,7 +195,7 @@ func (h *handler) enforceWorkflowOnly(channel, userID, ts string) error {
 	log.Printf("Removing direct post from user %s in channel %s\n", userID, channel)
 
 	adminClient := slack.New(slack.Config{
-		AccessToken:   h.adminToken,
+		AccessToken:   h.client.Config.AdminToken,
 		SigningSecret: h.client.Config.SigningSecret,
 	})
 
@@ -196,13 +204,16 @@ func (h *handler) enforceWorkflowOnly(channel, userID, ts string) error {
 		"ts":      ts,
 		"as_user": true,
 	}
-	for {
+	for i := 0; i < maxRetries; i++ {
 		err := adminClient.CallMethod("chat.delete", req, nil)
 		if err == nil {
 			break
 		}
 		switch e := err.(type) {
 		case slack.ErrRateLimit:
+			if i == maxRetries-1 {
+				return fmt.Errorf("rate limit exceeded after %d retries: %v", maxRetries, err)
+			}
 			log.Printf("Slack is rate limiting us, trying again in %s...\n", e.Wait)
 			time.Sleep(e.Wait)
 		case slack.ErrSlack:

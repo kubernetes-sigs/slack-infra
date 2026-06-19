@@ -17,10 +17,8 @@ limitations under the License.
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -59,32 +57,20 @@ func runServer(h *handler) error {
 	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
 
-func loadAdminToken(path string) (string, error) {
-	extraConf := struct {
-		AdminToken string `json:"adminToken"`
-	}{}
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", fmt.Errorf("couldn't open file: %v", err)
-	}
-	if err := json.Unmarshal(content, &extraConf); err != nil {
-		return "", fmt.Errorf("couldn't parse config: %v", err)
-	}
-	return extraConf.AdminToken, nil
-}
-
 func main() {
 	o := parseFlags()
 	c, err := slack.LoadConfig(o.configPath)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", o.configPath, err)
 	}
-	adminToken, err := loadAdminToken(o.configPath)
-	if err != nil {
-		log.Fatalf("Failed to load admin token from %s: %v", o.configPath, err)
+	if c.AdminToken == "" {
+		log.Fatalf("adminToken is required but was not found in %s", o.configPath)
+	}
+	if len(c.GuardedChannels) == 0 {
+		log.Fatalf("guardedChannels is required but was not found in %s", o.configPath)
 	}
 	s := slack.New(c)
 
-	h := &handler{client: s, messagePath: o.messagePath, adminToken: adminToken}
+	h := &handler{client: s, messagePath: o.messagePath}
 	log.Fatal(runServer(h))
 }
