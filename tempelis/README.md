@@ -15,6 +15,7 @@ CI system, it can be used to implement GitOps for Slack.
 * `--auth /path/to/auth`: path to slack auth config file.
 * `--config /path/to/config`: path to the Tempelis config file, or the root of the config directory.
 * `--dry-run`: does nothing if true, which is the default. Use `--dry-run=false` to run for real.
+* `--validate-only`: only validate config without connecting to Slack. Default is false.
 * `--restrictions`: optional: path to a config file that gives restrictions on what other config
   files can contain.
 
@@ -180,7 +181,7 @@ performs some action, and then exits.
 In Kubernetes, we have it set up as a CI presubmit and postsubmit. The presubmit runs using a
 read-only slack app in dry-run mode, and the postsubmit uses a read/write slack app with `--dry-run=false`.
 
-You can take a look at [the presubmit](https://github.com/kubernetes/test-infra/blob/1b01e0b752ff9ce6647e032e258426cedc6f2819/config/jobs/kubernetes/community/community-presubmit.yaml#L27)
-and [the postsubmit](https://github.com/kubernetes/test-infra/blob/1b01e0b752ff9ce6647e032e258426cedc6f2819/config/jobs/kubernetes/sig-k8s-infra/trusted/sig-contribex-tempelis.yaml#L2-L31).
+You can take a look at [the presubmit](https://github.com/kubernetes/test-infra/blob/18df72c82f2a649323169f688e2edd4faeb62d38/config/jobs/kubernetes/community/community-presubmit.yaml#L28-L51)
+and [the postsubmit](https://github.com/kubernetes/test-infra/blob/18df72c82f2a649323169f688e2edd4faeb62d38/config/jobs/kubernetes/sig-k8s-infra/trusted/sig-contribex-tempelis.yaml#L2-L38).
 
 [app-creation]: ../docs/app-creation.md
