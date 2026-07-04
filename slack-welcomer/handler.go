@@ -131,17 +131,21 @@ func (h *handler) handleEvent(body []byte) ([]byte, error) {
 	case "message":
 		event := struct {
 			Event struct {
-				SubType string `json:"subtype"`
-				User    string `json:"user"`
-				Channel string `json:"channel"`
-				Ts      string `json:"ts"`
-				BotID   string `json:"bot_id"`
+				SubType  string `json:"subtype"`
+				User     string `json:"user"`
+				Channel  string `json:"channel"`
+				Ts       string `json:"ts"`
+				ThreadTS string `json:"thread_ts"`
+				BotID    string `json:"bot_id"`
 			} `json:"event"`
 		}{}
 		if err := json.Unmarshal(body, &event); err != nil {
 			return nil, fmt.Errorf("failed to parse JSON: %v", err)
 		}
 		if event.Event.BotID != "" || event.Event.SubType == "bot_message" {
+			return []byte{}, nil
+		}
+		if event.Event.ThreadTS != "" && event.Event.ThreadTS != event.Event.Ts {
 			return []byte{}, nil
 		}
 		if h.isGuardedChannel(event.Event.Channel) && event.Event.User != "" {
