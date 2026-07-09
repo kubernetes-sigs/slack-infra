@@ -43,9 +43,7 @@ func handleHealthz(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("ok"))
 }
 
-func runServer(sl *slack.Client, o options) {
-	h := &handler{client: sl, messagePath: o.messagePath}
-
+func runServer(h *handler) error {
 	http.HandleFunc("/healthz", handleHealthz)
 	http.Handle(os.Getenv("PATH_PREFIX")+"/webhook", h)
 
@@ -56,7 +54,7 @@ func runServer(sl *slack.Client, o options) {
 	}
 
 	log.Printf("Listening on port %s", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
 
 func main() {
@@ -65,6 +63,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", o.configPath, err)
 	}
+	if c.AdminToken == "" {
+		log.Fatalf("adminToken is required but was not found in %s", o.configPath)
+	}
+	if len(c.GuardedChannels) == 0 {
+		log.Fatalf("guardedChannels is required but was not found in %s", o.configPath)
+	}
 	s := slack.New(c)
-	runServer(s, o)
+
+	h := &handler{client: s, messagePath: o.messagePath}
+	log.Fatal(runServer(h))
 }
