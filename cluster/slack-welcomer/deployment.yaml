@@ -15,7 +15,7 @@ spec:
         app: slack-welcomer
     spec:
       containers:
-      - name: slack-moderator
+      - name: slack-welcomer
         image: registry.k8s.io/slack-infra/slack-welcomer:v20230228-2b433f6
         args:
           - --config-path=/etc/slack-welcomer/config.json
