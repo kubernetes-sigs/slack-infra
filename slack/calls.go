@@ -80,3 +80,69 @@ func (c *Client) GetConversations(types []ConversationType) ([]Conversation, err
 func (c *Client) GetPublicChannels() ([]Conversation, error) {
 	return c.GetConversations([]ConversationType{ConversationTypePublicChannel})
 }
+
+// GetConversationMembers returns the IDs of every member of a conversation,
+// following cursor pagination.
+func (c *Client) GetConversationMembers(channelID string) ([]string, error) {
+	var members []string
+	cursor := ""
+	for {
+		args := map[string]string{
+			"channel": channelID,
+			"limit":   "1000",
+		}
+		if cursor != "" {
+			args["cursor"] = cursor
+		}
+
+		ret := struct {
+			Members  []string `json:"members"`
+			Metadata struct {
+				NextCursor string `json:"next_cursor"`
+			} `json:"response_metadata"`
+		}{}
+
+		for {
+			if err := c.CallOldMethod("conversations.members", args, &ret); err != nil {
+				switch e := err.(type) {
+				case ErrRateLimit:
+					time.Sleep(e.Wait)
+					continue
+				default:
+					return nil, fmt.Errorf("failed to list conversation members: %v", err)
+				}
+			}
+			break
+		}
+
+		members = append(members, ret.Members...)
+		if ret.Metadata.NextCursor == "" {
+			break
+		}
+		cursor = ret.Metadata.NextCursor
+	}
+	return members, nil
+}
+
+// KickFromConversation removes a user from a conversation. On failure it returns
+// the underlying error, which for Slack API errors is an ErrSlack whose Type
+// holds the Slack error code (e.g. cant_kick_from_general, not_in_channel,
+// restricted_action), so callers can decide whether to skip or abort.
+func (c *Client) KickFromConversation(channelID, userID string) error {
+	args := map[string]string{
+		"channel": channelID,
+		"user":    userID,
+	}
+	for {
+		if err := c.CallOldMethod("conversations.kick", args, nil); err != nil {
+			switch e := err.(type) {
+			case ErrRateLimit:
+				time.Sleep(e.Wait)
+				continue
+			default:
+				return err
+			}
+		}
+		return nil
+	}
+}
