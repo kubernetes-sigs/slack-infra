@@ -107,6 +107,24 @@ func TestInactiveCandidates(t *testing.T) {
 	}
 }
 
+func TestKeepRecentPosters(t *testing.T) {
+	lastActive := map[string]int64{
+		"stale":  cutoffTS - 1,  // existing, older than a recent post
+		"active": cutoffTS + 10, // existing, newer than the post (must not drop)
+	}
+	posts := map[string]int64{
+		"stale":     cutoffTS + 5, // raise existing
+		"active":    cutoffTS + 1, // lower than existing -> keep existing
+		"newposter": cutoffTS + 1, // absent from session activity -> insert
+	}
+	keepRecentPosters(lastActive, posts)
+
+	want := map[string]int64{"stale": cutoffTS + 5, "active": cutoffTS + 10, "newposter": cutoffTS + 1}
+	if !reflect.DeepEqual(lastActive, want) {
+		t.Errorf("keepRecentPosters = %v, want %v", lastActive, want)
+	}
+}
+
 func TestSplitList(t *testing.T) {
 	cases := []struct {
 		in   string

@@ -48,6 +48,12 @@ func runChannelKick(client *slack.Client, config slack.Config, o options) {
 	guarded := toSet(config.GuardedChannels)
 	allow := toSet(splitList(o.allow))
 
+	cache, err := loadMembersCache(o.membersCache)
+	if err != nil {
+		log.Fatalf("failed to load members cache %s: %v", o.membersCache, err)
+	}
+	defer cache.save()
+
 	if o.dryRun {
 		log.Printf("DRY RUN: no users will be kicked. Pass --dry-run=false to act.")
 	}
@@ -69,15 +75,28 @@ func runChannelKick(client *slack.Client, config slack.Config, o options) {
 			continue
 		}
 
-		members, err := client.GetConversationMembers(conv.ID)
+		members, err := cache.members(client, conv.ID, o.membersCacheTTL)
 		if err != nil {
 			log.Printf("channel %q: failed to list members: %v", name, err)
 			continue
 		}
 
+		// Access logs only capture logins, so a member who keeps a Slack app
+		// session open and never re-auths looks inactive. Cross-check recent
+		// posts in this channel so active posters aren't kicked. This only ever
+		// raises last-active, so it can't cause a kick session activity wouldn't.
+		if posts, err := client.GetLastPostByUser(conv.ID, cutoffTS); err != nil {
+			log.Printf("channel %q: history cross-check failed, using session activity only: %v", name, err)
+		} else {
+			keepRecentPosters(activity.lastActive, posts)
+		}
+
 		candidates := inactiveCandidates(members, users, activity, cutoffTS, allow)
 		log.Printf("channel %q (%s): %d members, %d inactive candidates", name, conv.ID, len(members), len(candidates))
 
+		// Members removed this run, dropped from the cache at the end of the
+		// channel so a re-run doesn't consider them again.
+		gone := map[string]bool{}
 		for _, id := range candidates {
 			if kicks >= o.maxKicks {
 				capped = true
@@ -98,15 +117,20 @@ func runChannelKick(client *slack.Client, config slack.Config, o options) {
 
 			if err := client.KickFromConversation(conv.ID, id); err != nil {
 				if e, ok := err.(slack.ErrSlack); ok && (e.Type == "not_in_channel" || e.Type == "cant_kick_from_general" || e.Type == "cant_kick_self") {
+					if e.Type == "not_in_channel" {
+						gone[id] = true // already left; the cache was stale
+					}
 					log.Printf("  skipped %s (%s) from %q: %s", id, username, name, e.Type)
 					continue
 				}
 				log.Printf("  ERROR kicking %s (%s) from %q: %v", id, username, name, err)
 				continue
 			}
+			gone[id] = true
 			log.Printf("  kicked %s (%s) from %q; last active %s", id, username, name, lastStr)
 			kicks++
 		}
+		cache.remove(conv.ID, gone)
 		if capped {
 			break
 		}
@@ -119,6 +143,18 @@ func runChannelKick(client *slack.Client, config slack.Config, o options) {
 	log.Printf("=== channel-kick done: %s %d users ===", verb, kicks)
 	if capped {
 		log.Printf("NOTE: hit the --max-kicks cap (%d); more candidates remain. Re-run to continue.", o.maxKicks)
+	}
+}
+
+// keepRecentPosters raises each poster's last-active time in the activity map.
+// A user missing from the map reads as 0, so any real post time wins and they
+// are inserted — that is what rescues an active member who posts but whose app
+// session never re-authenticated and so never showed up in the access logs.
+func keepRecentPosters(lastActive, posts map[string]int64) {
+	for id, ts := range posts {
+		if ts > lastActive[id] {
+			lastActive[id] = ts
+		}
 	}
 }
 

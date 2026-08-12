@@ -84,6 +84,8 @@ Channel-kick mode:
 
 - `--channels`: comma-separated channel names to prune (default `kubernetes-users`).
 - `--max-kicks`: safety cap on kicks performed per run (default 500). If hit, re-run to continue.
+- `--members-cache`: local path or `gs://` URL of the [members cache](#members-cache). Empty means the channel is listed from the API every run.
+- `--members-cache-ttl`: how long a cached member list is used before it is listed again (default `24h`).
 
 Deactivate mode:
 
@@ -106,6 +108,13 @@ actions per run; and honor `--allow-users`. Channel-kick additionally honors
 `guardedChannels` from the config and never touches `#general`. Kicked users can
 rejoin the channel freely; deactivation is more disruptive to reverse, which is
 why it runs on its own, slower cadence with a longer threshold.
+
+Access logs only record logins, so a member with a long-lived app session that
+never re-authenticates can look inactive. Channel-kick therefore also cross-
+checks each channel's recent post history (`conversations.history`) and keeps
+anyone who has posted within the cutoff, even with no session activity. Silent
+readers who never post still can't be distinguished from inactive accounts —
+Slack exposes no read/view signal — but a wrongly kicked reader can just rejoin.
 
 ## Activity store
 
@@ -143,6 +152,25 @@ CronJob then updates it incrementally.
 
 Because the store is login metadata (who was active when), keep whatever holds it
 private.
+
+## Members cache
+
+Listing the members of a large channel is slow: `conversations.members` pages
+1000 IDs at a time, so #kubernetes-users takes minutes before any kicking starts.
+`--members-cache` writes that list to a local path or `gs://` URL and reuses it on
+the next run, which matters when `--max-kicks` means working through the channel
+over several invocations.
+
+Kicked users are dropped from the cached list as they are kicked, so a re-run
+does not reconsider them. Entries older than `--members-cache-ttl` (default 24h)
+are listed from the API again; delete the file to force a refresh sooner.
+
+The cache is written when the run finishes, so kicks from a run killed part way
+through are not recorded. Those users are still gone from the channel and the
+next run's kick returns `not_in_channel`, which is skipped. Someone who left the
+channel on their own is handled the same way. Someone who *joins* is invisible
+until the entry expires, so keep the TTL short enough that a dry run reflects the
+channel you care about.
 
 ## Measuring at scale
 

@@ -58,8 +58,10 @@ type options struct {
 	storeLocation   string
 
 	// channel-kick mode
-	channels string
-	maxKicks int
+	channels        string
+	maxKicks        int
+	membersCache    string
+	membersCacheTTL time.Duration
 
 	// deactivate mode
 	maxDeactivations int
@@ -85,6 +87,8 @@ func parseFlags() options {
 
 	flag.StringVar(&o.channels, "channels", "kubernetes-users", "(channel-kick mode) comma-separated channel names to prune")
 	flag.IntVar(&o.maxKicks, "max-kicks", 500, "(channel-kick mode) safety cap on kicks performed per run")
+	flag.StringVar(&o.membersCache, "members-cache", "", "(channel-kick mode) local path or gs:// URL caching channel membership, so repeated runs skip the slow member listing. Empty = list every run")
+	flag.DurationVar(&o.membersCacheTTL, "members-cache-ttl", 24*time.Hour, "(channel-kick mode) how long a cached member list is used before it is listed again")
 	flag.IntVar(&o.maxDeactivations, "max-deactivations", 1000, "(deactivate mode) safety cap on deactivations performed per run")
 	flag.BoolVar(&o.dryRun, "dry-run", true, "(channel-kick, deactivate) if true (the default), only report what would be done")
 	flag.StringVar(&o.allow, "allow-users", "", "(channel-kick, deactivate) comma-separated user IDs or usernames to never act on")
