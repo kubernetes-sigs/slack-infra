@@ -1,0 +1,13 @@
+steps:
+  - name: gcr.io/cloud-builders/go
+    args: ['build', '-o', '$_TOOL/$_TOOL', './$_TOOL']
+    env: ['PROJECT_ROOT=sigs.k8s.io/slack-infra', 'CGO_ENABLED=0', 'GOOS=linux', 'GOARCH=amd64', 'GO111MODULE=on', 'GOPROXY=https://proxy.golang.org']
+  - name: gcr.io/cloud-builders/docker
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/$_TOOL:$_GIT_TAG', '-t', 'gcr.io/$PROJECT_ID/$_TOOL:latest', '.']
+    dir: $_TOOL
+substitutions:
+  _GIT_TAG: ''
+  _TOOL: 'missing'
+images:
+  - gcr.io/$PROJECT_ID/$_TOOL:$_GIT_TAG
+  - gcr.io/$PROJECT_ID/$_TOOL:latest
