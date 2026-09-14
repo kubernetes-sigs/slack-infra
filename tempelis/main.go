@@ -70,16 +70,11 @@ func main() {
 		log.Fatalf("Failed to load config: %v\n", err)
 	}
 
-	// If validate-only mode, just validate the config and exit
+	if err := p.Config.Validate(); err != nil {
+		log.Fatalf("Invalid config: %v\n", err)
+	}
+
 	if o.validateOnly {
-		for _, g := range p.Config.Usergroups {
-			if g.External {
-				continue
-			}
-			if _, err := p.Config.NamesToIDs(g.Members); err != nil {
-				log.Fatalf("usergroup %q has invalid member(s): %v\n", g.Name, err)
-			}
-		}
 		log.Println("Configuration validation successful!")
 		return
 	}

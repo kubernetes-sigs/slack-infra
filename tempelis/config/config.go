@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 type Config struct {
@@ -79,4 +80,33 @@ func (c *Config) NamesToIDs(names []string) ([]string, error) {
 		return nil, fmt.Errorf("unknown user names: %s", strings.Join(missing, ", "))
 	}
 	return result, nil
+}
+
+// maxUsergroupDescription is Slack's limit; exceeding it fails usergroups.create/update with description_too_long.
+const maxUsergroupDescription = 140
+
+// Validate checks constraints that Slack enforces at apply time but that can be
+// verified offline: member names resolve, descriptions fit, and handles do not
+// collide with channel names (usergroup handles and channel names share one
+// namespace, so usergroups.create fails with handle_already_exists).
+func (c *Config) Validate() error {
+	channels := map[string]struct{}{}
+	for _, ch := range c.Channels {
+		channels[ch.Name] = struct{}{}
+	}
+	for _, g := range c.Usergroups {
+		if g.External {
+			continue
+		}
+		if _, err := c.NamesToIDs(g.Members); err != nil {
+			return fmt.Errorf("usergroup %q has invalid member(s): %v", g.Name, err)
+		}
+		if n := utf8.RuneCountInString(g.Description); n > maxUsergroupDescription {
+			return fmt.Errorf("usergroup %q description is %d characters, Slack allows at most %d", g.Name, n, maxUsergroupDescription)
+		}
+		if _, ok := channels[g.Name]; ok {
+			return fmt.Errorf("usergroup %q has the same name as a channel; Slack rejects usergroup handles that match channel names", g.Name)
+		}
+	}
+	return nil
 }
