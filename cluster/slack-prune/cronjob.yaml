@@ -1,0 +1,68 @@
+# slack-prune runs as a one-shot command on a schedule (unlike the webhook-driven
+# tools, it has no service). This CronJob runs the weekly channel-kick pass over
+# #kubernetes-users. It starts in dry-run mode: it only logs who *would* be
+# kicked (visible in Cloud Logging) until someone reviews the output and adds
+# `--dry-run=false` below to let it act.
+#
+# It reads/writes its activity store on a PersistentVolume (--store) so each run
+# only fetches access logs since the last high-water mark instead of re-walking
+# years of history. The volume is claimed by pvc.yaml. The store must be seeded
+# once by a full backfill before this incremental job is useful: run a one-off
+# Job that mounts the same claim with `--store /state/activity.json
+# --checkpoint /state/backfill.json` (the checkpoint lets the long walk resume).
+# See the slack-prune README.
+#
+# Workspace-wide deactivation is intentionally not scheduled here; run it as a
+# separate CronJob on its own slower cadence (`--mode=deactivate`).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: slack-prune
+  labels:
+    app: slack-prune
+spec:
+  # Weekly, Sunday 00:00 UTC. Adjust as needed.
+  schedule: "0 0 * * 0"
+  # The access-log walk can be long, and the store volume is ReadWriteOnce;
+  # never let two runs overlap.
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      # Don't retry automatically: a run that fails should be inspected, not
+      # silently repeated.
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: slack-prune
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: slack-prune
+            # Placeholder tag: replace with a real released tag (e.g. v20230228-2b433f6) before deploying.
+            image: registry.k8s.io/slack-infra/slack-prune:vPLACEHOLDER
+            args:
+              - --mode=channel-kick
+              - --config=/etc/slack-prune/config.json
+              - --channels=kubernetes-users
+              - --cutoff=17520h # 2 years
+              # Durable activity store on the PersistentVolume; makes each run
+              # incremental.
+              - --store=/state/activity.json
+              # Remove dry-run protection only after reviewing the logged
+              # "would kick" output:
+              # - --dry-run=false
+            volumeMounts:
+            - mountPath: /etc/slack-prune
+              name: config
+            - mountPath: /state
+              name: state
+          volumes:
+          - name: config
+            secret:
+              secretName: slack-prune-config
+          - name: state
+            persistentVolumeClaim:
+              claimName: slack-prune-state

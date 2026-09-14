@@ -1,0 +1,17 @@
+# Durable storage for slack-prune's activity store (the userID -> last-active
+# map + high-water mark). Keeping it on a volume lets each scheduled run fetch
+# only new access logs instead of re-walking years of history. ReadWriteOnce is
+# fine: the CronJob uses concurrencyPolicy: Forbid, so only one pod mounts it at
+# a time. A gigabyte is far more than the few MB the store needs.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: slack-prune-state
+  labels:
+    app: slack-prune
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
