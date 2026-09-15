@@ -23,14 +23,88 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"go4.org/sort"
 	"sigs.k8s.io/slack-infra/slack"
 )
 
 type handler struct {
-	client     *slack.Client
-	userGroups []string
+	client            *slack.Client
+	userGroups        []string
+	templateURL       string
+	templateVariables map[string]string
+}
+
+// fetchTemplate retrieves the raw message template from templateURL.
+func fetchTemplate(templateURL string) (string, error) {
+	resp, err := http.Get(templateURL)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("got status %d fetching template", resp.StatusCode)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
+// substituteVariables replaces every {{KEY}} placeholder in tmpl with its value from vars.
+// Placeholders with no matching entry in vars are left untouched.
+func substituteVariables(tmpl string, vars map[string]string) string {
+	result := tmpl
+	for key, value := range vars {
+		result = strings.ReplaceAll(result, "{{"+key+"}}", value)
+	}
+	return result
+}
+
+// getUserDisplayName looks up the Slack display name for a user ID, falling back to their real name.
+func (h *handler) getUserDisplayName(userID string) (string, error) {
+	result := struct {
+		Ok   bool `json:"ok"`
+		User struct {
+			Profile struct {
+				DisplayName string `json:"display_name"`
+				RealName    string `json:"real_name"`
+			} `json:"profile"`
+		} `json:"user"`
+	}{}
+	args := map[string]string{"user": userID}
+	if err := h.client.CallOldMethod("users.info", args, &result); err != nil {
+		return "", err
+	}
+	if result.User.Profile.DisplayName != "" {
+		return result.User.Profile.DisplayName, nil
+	}
+	return result.User.Profile.RealName, nil
+}
+
+// buildInitialMessage fetches the configured template, if any, and substitutes
+// the configured template variables plus the sender's display name into it.
+func (h *handler) buildInitialMessage(interaction slackInteraction) string {
+	if h.templateURL == "" {
+		return ""
+	}
+	tmpl, err := fetchTemplate(h.templateURL)
+	if err != nil {
+		log.Printf("Failed to fetch message template from %s: %v", h.templateURL, err)
+		return ""
+	}
+	vars := map[string]string{}
+	for key, value := range h.templateVariables {
+		vars[key] = value
+	}
+	if name, err := h.getUserDisplayName(interaction.User.ID); err != nil {
+		log.Printf("Failed to look up display name for %s: %v", interaction.User.ID, err)
+	} else {
+		vars["USER"] = name
+	}
+	return substituteVariables(tmpl, vars)
 }
 
 func logError(rw http.ResponseWriter, format string, args ...interface{}) {
@@ -145,6 +219,7 @@ func (h *handler) handleWriteMessage(interaction slackInteraction, rw http.Respo
 			Type: "plain_text",
 			Text: "Write a message",
 		},
+		InitialValue: h.buildInitialMessage(interaction),
 	}
 	sectionBlock := SectionBlock{
 		Text: TextObject{

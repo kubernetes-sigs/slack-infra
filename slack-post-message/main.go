@@ -74,6 +74,24 @@ func loadAuthorizedUserGroups(path string) ([]string, error) {
 	return extraConf.UserGroups, nil
 }
 
+// templateConfig holds the optional message template settings.
+type templateConfig struct {
+	TemplateURL       string            `json:"templateURL"`
+	TemplateVariables map[string]string `json:"templateVariables"`
+}
+
+func loadTemplateConfig(path string) (templateConfig, error) {
+	tc := templateConfig{}
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return tc, fmt.Errorf("couldn't open file: %v", err)
+	}
+	if err := json.Unmarshal(content, &tc); err != nil {
+		return tc, fmt.Errorf("couldn't parse config: %v", err)
+	}
+	return tc, nil
+}
+
 func main() {
 	o := parseFlags()
 	c, err := slack.LoadConfig(o.configPath)
@@ -84,7 +102,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load user group from %s: %v", o.configPath, err)
 	}
+	tc, err := loadTemplateConfig(o.configPath)
+	if err != nil {
+		log.Fatalf("Failed to load template config from %s: %v", o.configPath, err)
+	}
 	s := slack.New(c)
-	h := &handler{client: s, userGroups: userGroups}
+	h := &handler{
+		client:            s,
+		userGroups:        userGroups,
+		templateURL:       tc.TemplateURL,
+		templateVariables: tc.TemplateVariables,
+	}
 	log.Fatal(runServer(h))
 }

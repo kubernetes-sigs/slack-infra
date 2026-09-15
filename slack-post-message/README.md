@@ -28,6 +28,27 @@ In our specific deployment for kubernetes slack, we use the id for `@contributor
 "userGroups": ["STZT16J91"]
 ```
 
+### Message templates
+
+To pre-fill the message box instead of showing a blank one, add `templateURL` (a link to a raw
+markdown or text file) and, optionally, `templateVariables` to `config.json`:
+
+```json
+{
+  "templateURL": "https://raw.githubusercontent.com/kubernetes/sig-release/master/release-team/role-handbooks/communications/templates/sig-release-highlight-message.md",
+  "templateVariables": {
+    "RELEASE": "v1.37",
+    "DEADLINE": "July 28th, 2026"
+  }
+}
+```
+
+The template is fetched fresh each time the "Post a message" shortcut is opened, and any
+`{{VARIABLE}}` placeholder in it is replaced with the matching entry from `templateVariables`.
+`{{USER}}` is always available and resolves to the sender's Slack display name, without needing
+to be listed in `templateVariables`. The user can still edit the pre-filled text before sending.
+If `templateURL` is not set, or the template can't be fetched, the message box is blank as before.
+
 ### Slack setup
 
 - `slack-post-message` requires the following OAuth scopes:
