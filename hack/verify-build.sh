@@ -28,7 +28,7 @@ PACKAGES=(
 go-build() {
   target=$(mktemp)
   pushd "./$1" > /dev/null
-  GO111MODULE=on go build -o "${target}"
+  go build -o "${target}"
   ret=$?
   popd > /dev/null
   rm -f "${target}"
