@@ -5,8 +5,10 @@ metadata:
 data:
   welcome.md: |-
     :kubernetes-intensifies: Welcome to the Kubernetes Community Slack!
-    We are so glad you are here! This is a friendly and supportive community — feel free to ask questions, share ideas, and connect with contributors from all over the world. :wave:
-    Before posting, please take a moment to read our <https://github.com/kubernetes/community/blob/main/communication/slack-guidelines.md|Slack Guidelines> and our <https://github.com/kubernetes/community/blob/main/code-of-conduct.md|Code of Conduct> so we can keep this space welcoming for everyone. :heart:
+
+    We are glad you are here. This is a friendly and supportive community. Ask questions, share ideas, and connect with contributors from all over the world. :wave:
+    Before posting, please read our <https://github.com/kubernetes/community/blob/main/communication/slack-guidelines.md|Slack Guidelines> and <https://github.com/kubernetes/community/blob/main/code-of-conduct.md|Code of Conduct> so we can keep this space welcoming for everyone. :heart:
+
     *Have a general Kubernetes question?* :thought_balloon:
     - Ask your question on the <https://discuss.kubernetes.io|official Kubernetes Forum>.
     - Join #sig-contribex-comms and say hello!
