@@ -11,22 +11,30 @@ data:
 
     *Have a general Kubernetes question?* :thought_balloon:
     - Ask your question on the <https://discuss.kubernetes.io|official Kubernetes Forum>.
-    - Join #sig-contribex-comms and say hello!
-    - Have your question answered live on stream in #office-hours during the monthly Office Hours.
+    - Join #kubernetes-new-contributors and say hello!
     - Find a <https://github.com/kubernetes/community/blob/main/sig-list.md|SIG channel> to join and ask your question.
     *Looking to contribute?* :rocket:
-    - New to Kubernetes? Attend a <https://www.kubernetes.dev/docs/orientation/|New Contributor Orientation> — a great place to get started and meet the community!
-    - SIG Docs and Contributor Experience are excellent starting points.
+    - New to Kubernetes? Attend a <https://www.kubernetes.dev/docs/orientation/|New Contributor Orientation>. A great place to get started and meet the community!
+    - SIG Docs and SIG Contributor Experience are excellent starting points.
     - Explore the <https://github.com/kubernetes/community/blob/main/contributors/guide/README.md|Contributor Guide> and <https://github.com/kubernetes/community/blob/main/contributors/devel/README.md|Developer Guide>.
     - Ask questions in #kubernetes-new-contributors.
     - Join a <https://github.com/kubernetes/community/blob/main/sig-list.md|SIG channel>.
     - Have a PR you need reviewed? Hop into #pr-reviews to get some feedback.
-    *See some spam? or being harassed?* :shield:
-    - Use the _"Report Message"_ message action.
-    - Escalate by joining #slack-admins and ask for an Admin's assistance.
+    *Joining a community meeting?* :calendar:
+    - AI notetaker bots (Otter.ai, Fireflies.ai, Fathom, Read.ai) are not allowed on Kubernetes Zoom calls. See the <https://github.com/kubernetes/community/blob/main/communication/zoom-guidelines.md#ai-notetakers|Zoom Guidelines>.
+    *See some spam? Being harassed?* :shield:
+    - Use the _"<https://github.com/kubernetes/community/blob/main/communication/slack-guidelines.md#reporting-a-problem|Report Message>"_ message action.
+    - Escalate by joining #slack-admins and asking for an Admin's assistance.
+    - Bots, AI agents, and automations require Slack admin approval. Ask in #slack-admins first.
+    *Looking to join a local community?*
+    - There are many channels for regions and meetups. Look for channels like `#meetup-[region]` or `#[region]-users`.
     *Other channels of note:* :loudspeaker:
-    - #kubecon - Get your question answered about any upcoming KubeCon/CloudNativeCon.
+    - #kubecon - Get your question answered about any upcoming <https://www.cncf.io/community/kubecon-cloudnativecon-events/|KubeCon/CloudNativeCon>.
     - #kubernetes-careers - A place to post Kubernetes related jobs.
     - #sig-contribex - Connect with the Contributor Experience SIG.
-    - #kubernetes-new-contributors - A welcoming space just for newcomers! :seedling:
+    *Stay connected* :satellite:
+    - Read the <https://kubernetes.io/blog/|Kubernetes blog> and the <https://www.kubernetes.dev/docs/guide/|Contributor Guide on kubernetes.dev>.
+    - Post or answer questions on <https://stackoverflow.com/questions/tagged/kubernetes|Stack Overflow>.
+    - Follow Kubernetes on <https://bsky.app/profile/kubernetes.io|Bluesky>, <https://www.linkedin.com/company/kubernetes/|LinkedIn>, and <https://x.com/kubernetesio|X>.
+    - Share your <https://www.cncf.io/case-studies/|Kubernetes End User Story> or join the <https://github.com/kubernetes/sig-release/tree/master/release-team|Release Team>.
     Have any other questions? Please see the <https://github.com/kubernetes/community/blob/main/communication/slack-guidelines.md|Slack Guidelines> to start. We are happy you are here! :tada:
