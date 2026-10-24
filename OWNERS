@@ -1,7 +1,6 @@
 # See the OWNERS docs at https://go.k8s.io/owners
 
 reviewers:
-  - BenTheElder
   - coderanger
   - cpanato
   - jberkus
@@ -9,7 +8,6 @@ reviewers:
   - mrbobbytables
 
 approvers:
-  - BenTheElder
   - coderanger
   - cpanato
   - jberkus
@@ -20,6 +18,7 @@ labels:
   - sig/contributor-experience
 
 emeritus_approvers:
+  - BenTheElder
   - Katharine
   - nikhita
   - spiffxp
