@@ -6,6 +6,7 @@ reviewers:
   - jberkus
   - jeefy
   - mrbobbytables
+  - stmcginnis
 
 approvers:
   - coderanger
@@ -13,6 +14,7 @@ approvers:
   - jberkus
   - jeefy
   - mrbobbytables
+  - stmcginnis
 
 labels:
   - sig/contributor-experience
