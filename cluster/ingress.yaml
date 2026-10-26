@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress
@@ -10,22 +10,37 @@ spec:
     - http:
         paths:
           - path: /infra/event-log/*
+            pathType: ImplementationSpecific
             backend:
-              serviceName: slack-event-log
-              servicePort: 80
+              service:
+                name: slack-event-log
+                port:
+                  number: 80
           - path: /infra/moderator/*
+            pathType: ImplementationSpecific
             backend:
-              serviceName: slack-moderator
-              servicePort: 80
+              service:
+                name: slack-moderator
+                port:
+                  number: 80
           - path: /infra/moderator-words/*
+            pathType: ImplementationSpecific
             backend:
-              serviceName: slack-moderator-words
-              servicePort: 80
+              service:
+                name: slack-moderator-words
+                port:
+                  number: 80
           - path: /infra/welcomer/*
+            pathType: ImplementationSpecific
             backend:
-              serviceName: slack-welcomer
-              servicePort: 80
+              service:
+                name: slack-welcomer
+                port:
+                  number: 80
           - path: /infra/post-message/*
+            pathType: ImplementationSpecific
             backend:
-              serviceName: slack-post-message
-              servicePort: 80
+              service:
+                name: slack-post-message
+                port:
+                  number: 80
