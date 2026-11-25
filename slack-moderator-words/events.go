@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -36,7 +36,7 @@ type handler struct {
 
 // ServeHTTP handles Slack webhook requests.
 func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		logError(rw, "Failed to read incoming request body: %v", err)
 		return

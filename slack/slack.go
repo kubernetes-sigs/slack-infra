@@ -24,7 +24,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math"
 	"net/http"
 	"net/url"
@@ -109,7 +109,7 @@ func handleSlackRequest(req *http.Request, ret interface{}) error {
 				Messages []string `json:"messages"`
 			} `json:"response_metadata"`
 		}{}
-		body, err := ioutil.ReadAll(response.Body)
+		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			return fmt.Errorf("failed to read body: %v", err)
 		}

@@ -19,9 +19,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"sigs.k8s.io/slack-infra/slack"
@@ -51,7 +52,7 @@ func logError(rw http.ResponseWriter, format string, args ...interface{}) {
 type handlerFunc func(body []byte) ([]byte, error)
 
 func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		logError(rw, "Failed to read incoming request body: %v", err)
 		return
@@ -298,7 +299,7 @@ func (h *handler) sendWelcome(uid string) error {
 }
 
 func (h *handler) getWelcome() (string, error) {
-	message, err := ioutil.ReadFile(h.messagePath)
+	message, err := os.ReadFile(h.messagePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read %s: %v", h.messagePath, err)
 	}

@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -61,7 +60,7 @@ func loadAuthorizedUserGroups(path string) ([]string, error) {
 	extraConf := struct {
 		UserGroups []string `json:"userGroups"`
 	}{}
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return []string{}, fmt.Errorf("couldn't open file: %v", err)
 	}
