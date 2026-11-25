@@ -97,7 +97,7 @@ func (a createChannelAction) Perform(reconciler *Reconciler) error {
 	}
 	if t.Purpose != "" {
 		if err := reconciler.slack.CallMethod("conversations.setPurpose", map[string]interface{}{"channel": c.ID, "purpose": t.Purpose}, nil); err != nil {
-			return fmt.Errorf("failed to set purpose of channel %s to %q: %v", c.Name, c.Topic, err)
+			return fmt.Errorf("failed to set purpose of channel %s to %q: %v", c.Name, t.Purpose, err)
 		}
 	}
 	for _, p := range t.Pins {

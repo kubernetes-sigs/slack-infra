@@ -44,14 +44,14 @@ func New(client *slack.Client) *Handler {
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Printf(fmt.Sprintf("failed to read body: %v", err))
+		log.Printf("failed to read body: %v", err)
 		http.Error(w, fmt.Sprintf("failed to read body: %v", err), 500)
 		return
 	}
 	log.Printf("%#v", r.Header)
-	log.Printf(string(body))
+	log.Print(string(body))
 	if err := h.client.VerifySignature(body, r.Header); err != nil {
-		log.Printf(fmt.Sprintf("signature verification failed: %v", err))
+		log.Printf("signature verification failed: %v", err)
 		http.Error(w, fmt.Sprintf("signature verification failed: %v", err), 403)
 		return
 	}

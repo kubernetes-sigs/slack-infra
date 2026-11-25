@@ -38,7 +38,7 @@ func (h *Handler) handleTeamJoin(body []byte) ([]byte, error) {
 	if displayName == "" {
 		displayName = "_none_"
 	}
-	h.sendMessage(fmt.Sprintf("A *new user joined*: <@%s> (display name: %s, real name: %s)", user.ID, displayName, slack.EscapeMessage(user.Profile.RealName)))
+	h.sendMessage("A *new user joined*: <@%s> (display name: %s, real name: %s)", user.ID, displayName, slack.EscapeMessage(user.Profile.RealName))
 	return nil, nil
 }
 
