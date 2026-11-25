@@ -1,53 +1,105 @@
 # slack-welcomer
 
-slack-welcomer sends a configurable message to every member who joins the Slack team.
+slack-welcomer does two things:
+
+- Sends a configurable welcome message as a direct message to every member who joins the Slack
+  team.
+- Deletes posts in a configured list of workflow-only channels and tells the poster to use the
+  channel's workflow instead. See [Workflow-only channels](#workflow-only-channels).
+
+The second job is unrelated to welcoming new members. It runs here so it can use the existing
+Slack app instead of a separate one.
 
 ## Configuration
 
-slack-welcomer requires a configuration file, by default called `config.json` in the working
-directory. It must look like this:
+slack-welcomer reads a JSON configuration file, `config.json` in the working directory by default
+(set with `--config-path`):
 
 ```json
 {
   "signingSecret": "some_slack_signing_secret",
   "accessToken": "xoxb-some-bot-access-token-starting-with-xoxb",
+  "adminToken": "xoxp-some-user-access-token-starting-with-xoxp",
+  "guardedChannels": ["C0123456789"]
 }
 ```
 
-`signingSecret` and `accessToken` are values provided by Slack when creating and
-installing the app. Check out the [slack app creation guide][app-creation] for more details.
+- `signingSecret` and `accessToken` come from Slack when you create and install the app. See the
+  [slack app creation guide][app-creation].
+- `adminToken` is a user token belonging to a workspace admin or owner. slack-welcomer uses it to
+  delete other members' posts.
+- `guardedChannels` is a list of channel IDs (not names) to treat as workflow-only.
 
-In addition, slack-welcomer requires a welcome message, written in `mrkdwn`, Slack's thing that is
-not really Markdown at all. No good documentation of mrkdwn exists, but the best can be found
-[on Slack's developer site](https://api.slack.com/docs/message-formatting).
+All four fields are required. slack-welcomer exits at startup if `adminToken` is empty or
+`guardedChannels` has no entries.
 
-By default, the welcome message is expected to be found in `welcome.md` in the working directory.
+The welcome message is a separate file, `welcome.md` in the working directory by default (set with
+`--message-path`). Write it in [mrkdwn][mrkdwn], Slack's own markup, which is not Markdown.
+slack-welcomer reads the file on every join, so edits take effect without a restart.
 
-### Slack setup
+The server listens on `$PORT` (default `8080`) and serves:
 
-slack-welcomer requires the following OAuth scopes:
+- `/healthz` for readiness checks.
+- `$PATH_PREFIX/webhook` for Slack events. `PATH_PREFIX` defaults to empty.
 
-- `bot`
-- `chat:write:bot`
+## Workflow-only channels
+
+When a member posts a new top-level message in a channel listed in `guardedChannels`,
+slack-welcomer:
+
+1. Looks the member up with `users.info`. Posts by workspace admins and owners are left alone.
+2. Deletes the message with `chat.delete`, using `adminToken`.
+3. Sends the member a direct message saying the channel only accepts posts submitted through the
+   official workflow, and to ask in #slack-admins with questions. The text is set in
+   `handler.go` and mentions job listings and resumes.
+
+Bot messages and thread replies are ignored. If the `users.info` lookup fails, the post is left in
+place.
+
+The bot user must be a member of each guarded channel; Slack does not send it message events for
+channels it is not in.
+
+## Slack setup
+
+Bot token scopes:
+
+- `chat:write`
+- `im:write`
 - `users:read`
 
-Additionally, `slack-event-log` also requires the following event subscriptions:
+The Kubernetes workspace runs slack-welcomer as a classic Slack app with the `bot` and `users:read`
+scopes, which cover the same calls.
 
-- `team_join`
+`adminToken` needs the `chat:write` user scope.
 
-slack-welcomer does not require any interactive components.
+Event subscriptions (bot events):
 
-The [slack app creation guide][app-creation] explains what to do with these values. Additionally,
-you will want to create a bot user, using "Bot Users" in the left sidebar of the Slack app creation
-page.
+- `team_join`, for the welcome message.
+- `message.channels`, for workflow-only channels.
+
+Set the Request URL to `https://<your-host>$PATH_PREFIX/webhook`.
+
+slack-welcomer does not use any interactive components.
+
+The [slack app creation guide][app-creation] explains where to enter these values.
 
 ## Deployment
 
-Kubernetes runs slack-welcomer in a Kubernetes cluster; check out the [config](../cluster/slack-welcomer).
+The Kubernetes community's deployment lives in the
+[kubernetes/k8s.io](https://github.com/kubernetes/k8s.io) repository:
 
-slack-welcomer can run on Google App Engine. To do this, create `config.json` and `welcome.md` files in this
-directory as described above and then run `gcloud app deploy`, using a Google Cloud Platform project
-that has [App Engine](https://console.cloud.google.com/appengine) enabled. For most Slack teams,
-slack-welcomer should fit in the free quota.
+- [`apps/slack-infra/resources/slack-welcomer/`](https://github.com/kubernetes/k8s.io/tree/main/apps/slack-infra/resources/slack-welcomer)
+  holds the Deployment, Service, and ExternalSecret.
+  - `deployment.yaml` sets the image tag and `PATH_PREFIX=/infra/welcomer`.
+  - `message.yaml` is the ConfigMap holding the welcome message. Edit the welcome text here.
+  - `externalsecrets.yaml` loads `config.json` from the Google Secret Manager secret
+    `slack-welcomer-config` in the `kubernetes-public` GCP project. The tokens and
+    `guardedChannels` live in that secret.
+- [`apps/slack-infra/resources/ingress.yaml`](https://github.com/kubernetes/k8s.io/blob/main/apps/slack-infra/resources/ingress.yaml)
+  routes `/infra/welcomer/*` to the service.
+- New images are promoted in
+  [`registry.k8s.io/images/k8s-staging-slack-infra/images.yaml`](https://github.com/kubernetes/k8s.io/blob/main/registry.k8s.io/images/k8s-staging-slack-infra/images.yaml)
+  and then referenced from `deployment.yaml`.
 
 [app-creation]: ../docs/app-creation.md
+[mrkdwn]: https://api.slack.com/reference/surfaces/formatting
