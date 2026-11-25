@@ -28,6 +28,7 @@ type Config struct {
 	WebhookURL      string   `json:"webhook"`
 	AccessToken     string   `json:"accessToken"`
 	AdminToken      string   `json:"adminToken"`
+	Cookie          string   `json:"cookie"`
 	GuardedChannels []string `json:"guardedChannels"`
 }
 

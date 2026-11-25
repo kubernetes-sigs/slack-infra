@@ -57,6 +57,7 @@ func (c *Client) CallMethod(api string, args interface{}, ret interface{}) error
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", "Bearer "+c.Config.AccessToken)
+	c.setCookie(req)
 	return handleSlackRequest(req, ret)
 }
 
@@ -75,7 +76,17 @@ func (c *Client) CallOldMethod(api string, args map[string]string, ret interface
 		return fmt.Errorf("failed to create HTTP request: %v", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
+	c.setCookie(req)
 	return handleSlackRequest(req, ret)
+}
+
+// setCookie attaches the `d` session cookie to a request when one is configured.
+// Browser session tokens (xoxc-...) are only accepted alongside their `d` cookie
+// (xoxd-...); OAuth tokens don't need it, so this is a no-op when Cookie is empty.
+func (c *Client) setCookie(req *http.Request) {
+	if c.Config.Cookie != "" {
+		req.Header.Set("Cookie", "d="+c.Config.Cookie)
+	}
 }
 
 func slackMethodToURL(method string) string {
