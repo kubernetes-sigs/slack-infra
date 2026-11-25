@@ -22,7 +22,7 @@ ret=0
 (./hack/verify-govet.sh) || ret=1
 (./hack/verify-gofmt.sh) || ret=1
 
-if [[ ! ${ret} ]]; then
+if [[ ${ret} -ne 0 ]]; then
   echo "Verify failed."
 fi
 
