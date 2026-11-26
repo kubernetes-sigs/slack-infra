@@ -19,7 +19,7 @@ package slack
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 // Config is the information needed to communicate with Slack.
@@ -34,7 +34,7 @@ type Config struct {
 // LoadConfig loads a Config from a JSON file.
 func LoadConfig(path string) (Config, error) {
 	config := Config{}
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return config, fmt.Errorf("couldn't open file: %v", err)
 	}

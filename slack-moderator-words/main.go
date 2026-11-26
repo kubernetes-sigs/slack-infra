@@ -19,7 +19,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -59,7 +58,7 @@ func runServer(h *handler) error {
 }
 
 func loadFilterConfig(path string) (model.FilterConfig, error) {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't open file: %v", err)
 	}
