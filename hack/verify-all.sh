@@ -14,16 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
-cd "${REPO_ROOT}"
+# Called by the pull-slack-infra-verify Prow job. See hack/README.md.
+set -o errexit
 
-ret=0
-
-(./hack/verify-govet.sh) || ret=1
-(./hack/verify-gofmt.sh) || ret=1
-
-if [[ ${ret} -ne 0 ]]; then
-  echo "Verify failed."
-fi
-
-exit ${ret}
+cd "$(git rev-parse --show-toplevel)"
+exec make verify

@@ -14,35 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Tries to build all the executables to verify that they can in fact be built.
+# Called by the pull-slack-infra-build Prow job. See hack/README.md.
+set -o errexit
 
-PACKAGES=(
-  "slack-event-log"
-  "slack-moderator"
-  "slack-moderator-words"
-  "slack-report-message"
-  "slack-welcomer"
-  "slack-post-message"
-)
-
-go-build() {
-  target=$(mktemp)
-  pushd "./$1" > /dev/null
-  go build -o "${target}"
-  ret=$?
-  popd > /dev/null
-  rm -f "${target}"
-  return ${ret}
-}
-
-ret=0
-for pkg in "${PACKAGES[@]}"; do
-  go-build "${pkg}"
-  result=$?
-  if [[ ${result} -ne "0" ]]; then
-    echo "Failed to build ${pkg}"
-    ret=1
-  fi
-done
-
-exit ${ret}
+cd "$(git rev-parse --show-toplevel)"
+exec make build
