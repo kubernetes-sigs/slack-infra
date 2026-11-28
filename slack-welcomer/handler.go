@@ -58,7 +58,20 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.client.VerifySignature(body, r.Header); err != nil {
-		logError(rw, "Failed validation: %v", err)
+		// The body is unverified, so these fields are only a hint at the sender.
+		src := struct {
+			APIAppID string `json:"api_app_id"`
+			TeamID   string `json:"team_id"`
+			Event    struct {
+				Type string `json:"type"`
+			} `json:"event"`
+		}{}
+		_ = json.Unmarshal(body, &src)
+		// Log the details but keep them out of the response, and cap each
+		// field since the sender controls its length.
+		log.Printf("Failed validation: %v (api_app_id=%.64q team_id=%.64q event=%.64q retry=%.8q)",
+			err, src.APIAppID, src.TeamID, src.Event.Type, r.Header.Get("X-Slack-Retry-Num"))
+		http.Error(rw, "Failed validation", http.StatusInternalServerError)
 		return
 	}
 	response, err := h.handleMessage(body)
