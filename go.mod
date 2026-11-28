@@ -1,6 +1,6 @@
 module sigs.k8s.io/slack-infra
 
-go 1.23
+go 1.27.4
 
 require (
 	github.com/bmatcuk/doublestar v1.3.4
